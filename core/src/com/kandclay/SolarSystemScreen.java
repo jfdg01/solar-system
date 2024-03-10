@@ -21,21 +21,26 @@ import static com.kandclay.Constants.*;
 
 public class SolarSystemScreen implements Screen {
     private final SolarSystemGame game;
-    private World worldPhysics;
-    private float physics_accumulator = 0f;
+    private World world;
     private Stage worldStage;
     private ExtendViewport worldViewport;
     private OrthographicCamera worldCamera;
     private Batch spriteBatch;
+
     //Sun
-    private Body sunBody;
+    public Body sunBody;
     private TextureRegion sunRegion;
     private Texture sunTexture;
 
     // Earth
-    private Body earthBody;
+    public Body earthBody;
     private Texture earthTexture;
     private TextureRegion earthRegion;
+
+    // Ice Planet
+    private Body icePlanetBody;
+    private Texture icePlanetTexture;
+    private TextureRegion icePlanetRegion;
 
     public SolarSystemScreen(SolarSystemGame game) {
         this.game = game;
@@ -47,12 +52,11 @@ public class SolarSystemScreen implements Screen {
         initializeCameraAndViewport();
         initializeStage();
         setupInputProcessors();
-        loadResources();
         createSolarSystem();
     }
 
     private void initializeWorld() {
-        worldPhysics = new World(new Vector2(0, 0), true);
+        world = new World(new Vector2(0, 0), true);
     }
 
     private void initializeCameraAndViewport() {
@@ -85,20 +89,16 @@ public class SolarSystemScreen implements Screen {
         Gdx.input.setInputProcessor(multiplexer);
     }
 
-    private void loadResources() {
+    private void createSun() {
+
         sunTexture = new Texture(Gdx.files.internal("sprites/Lava.png"));
         sunRegion = new TextureRegion(sunTexture);
-        earthTexture = new Texture(Gdx.files.internal("sprites/Terran.png"));
-        earthRegion = new TextureRegion(earthTexture);
-    }
 
-    private void createSun() {
-        // Code to create a static body for the sun
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.StaticBody;
         bodyDef.position.set(Gdx.graphics.getWidth() / 2f / PIXELS_TO_METERS, Gdx.graphics.getHeight() / 2f / PIXELS_TO_METERS);
 
-        sunBody = worldPhysics.createBody(bodyDef);
+        sunBody = world.createBody(bodyDef);
 
         CircleShape shape = new CircleShape();
         shape.setRadius(SUN_RADIUS_PIXELS / PIXELS_TO_METERS);
@@ -112,14 +112,17 @@ public class SolarSystemScreen implements Screen {
     }
 
     private void createEarth() {
-        // Adjust these values as needed
-        Vector2 initialPosition = new Vector2(sunBody.getPosition().x + (float) EARTH_DISTANCE_TO_SUN_PIXELS / Constants.PIXELS_TO_METERS, sunBody.getPosition().y);
+        earthTexture = new Texture(Gdx.files.internal("sprites/Terran.png"));
+        earthRegion = new TextureRegion(earthTexture);
+
+        float bodyXPosition = sunBody.getPosition().x + (float) EARTH_DISTANCE_TO_SUN_PIXELS / Constants.PIXELS_TO_METERS;
+        Vector2 initialPosition = new Vector2(bodyXPosition, sunBody.getPosition().y);
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.position.set(initialPosition);
 
-        earthBody = worldPhysics.createBody(bodyDef);
+        earthBody = world.createBody(bodyDef);
 
         CircleShape shape = new CircleShape();
         shape.setRadius((float) EARTH_RADIUS_PIXELS / Constants.PIXELS_TO_METERS);
@@ -132,12 +135,47 @@ public class SolarSystemScreen implements Screen {
         shape.dispose();
     }
 
+    private void createIcePlanet() {
+        // Load ice planet texture
+        icePlanetTexture = new Texture(Gdx.files.internal("sprites/Ice.png"));
+        icePlanetRegion = new TextureRegion(icePlanetTexture);
+
+        // Position the ice planet relative to the sun, similar to Earth
+        float bodyXPosition = sunBody.getPosition().x + (float) ICE_DISTANCE_TO_SUN_PIXELS / Constants.PIXELS_TO_METERS;
+        Vector2 initialPosition = new Vector2(bodyXPosition, sunBody.getPosition().y);
+
+        // Define the ice planet body
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.DynamicBody;
+        bodyDef.position.set(initialPosition);
+
+        icePlanetBody = world.createBody(bodyDef);
+
+        // Define the shape of the ice planet
+        CircleShape shape = new CircleShape();
+        shape.setRadius((float) ICE_RADIUS_PIXELS / Constants.PIXELS_TO_METERS);
+
+        // Attach fixture to the ice planet body
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = shape;
+        fixtureDef.density = 1f;
+
+        icePlanetBody.createFixture(fixtureDef);
+        shape.dispose();
+    }
+
     private void createSolarSystem() {
         createSun();
         createEarth();
+        createIcePlanet();
     }
 
-    private void handleEarthRotation() {
+    public void manageOrbits() {
+        adjustEarthVelocity();
+        adjustIcePlanetVelocity();
+    }
+
+    public void adjustEarthVelocity() {
         Vector2 centerToEarth = earthBody.getPosition().sub(sunBody.getPosition());
 
         Vector2 tangentVelocity = new Vector2(-centerToEarth.y, centerToEarth.x);
@@ -146,16 +184,25 @@ public class SolarSystemScreen implements Screen {
         earthBody.setLinearVelocity(tangentVelocity.x, tangentVelocity.y);
     }
 
+    public void adjustIcePlanetVelocity() {
+        Vector2 centerToIcePlanet = icePlanetBody.getPosition().sub(sunBody.getPosition());
+
+        Vector2 tangentVelocity = new Vector2(-centerToIcePlanet.y, centerToIcePlanet.x);
+        tangentVelocity.nor(); // Normalize to get direction
+        tangentVelocity.scl(ICE_ORBIT_SPEED); // Adjust orbit speed as desired
+        icePlanetBody.setLinearVelocity(tangentVelocity.x, tangentVelocity.y);
+    }
 
     @Override
     public void render(float delta) {
-        handleEarthRotation();
+        manageOrbits();
         clearScreen();
         stepWorld(delta);
 
         spriteBatch.begin();
         drawSun();
         drawEarth();
+        drawIce();
         spriteBatch.end();
 
         updateWorldStage(delta);
@@ -166,14 +213,8 @@ public class SolarSystemScreen implements Screen {
     }
 
     private void stepWorld(float delta) {
-        // Add the frame's delta time to the accumulator.
-        physics_accumulator += delta;
-
-        // Run the simulation for as many fixed steps as the accumulator can cover.
-        while (physics_accumulator >= PHYSICS_TIME_STEP) {
-            worldPhysics.step(PHYSICS_TIME_STEP, PHYSICS_VELOCITY_ITERATIONS, PHYSICS_POSITION_ITERATIONS);
-            physics_accumulator -= PHYSICS_TIME_STEP;
-        }
+        float PHYSICS_STEP_PER_SECOND = 60;
+        world.step(1f / PHYSICS_STEP_PER_SECOND, PHYSICS_VELOCITY_ITERATIONS, PHYSICS_POSITION_ITERATIONS);
     }
 
     private void drawSun() {
@@ -185,6 +226,11 @@ public class SolarSystemScreen implements Screen {
     private void drawEarth() {
         Vector2 bodyPos = earthBody.getPosition();
         drawCelestialBody(earthRegion, bodyPos, 0, NO_SCALING); // Earth does not scale like the sun in this example, hence -1 for scale factor
+    }
+
+    private void drawIce() {
+        Vector2 bodyPos = icePlanetBody.getPosition();
+        drawCelestialBody(icePlanetRegion, bodyPos, 0, NO_SCALING); // Ice planet does not scale like the sun in this example, hence -1 for scale factor
     }
 
     private void drawCelestialBody(TextureRegion region, Vector2 position, float rotation, float scalePixels) {
