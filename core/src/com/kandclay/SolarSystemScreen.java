@@ -6,48 +6,67 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Group;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Scaling;
-import com.badlogic.gdx.utils.SnapshotArray;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
 
-import com.kandclay.Constants;
-
-import static com.kandclay.Constants.SPEED_FACTOR;
+import static com.kandclay.Constants.*;
 
 public class SolarSystemScreen implements Screen {
-    private final SolarSystemGame game; // Store reference to the main game class
+    private final SolarSystemGame game;
+    private World worldPhysics;
+    private float physics_accumulator = 0f;
     private Stage worldStage;
     private ExtendViewport worldViewport;
     private OrthographicCamera worldCamera;
+    private Batch spriteBatch;
+    //Sun
+    private Body sunBody;
+    private TextureRegion sunRegion;
+    private Texture sunTexture;
 
-    private Actor sun;
-    private Actor earth;
-    private Actor mercury;
-    private Actor moon;
+    // Earth
+    private Body earthBody;
+    private Texture earthTexture;
+    private TextureRegion earthRegion;
 
     public SolarSystemScreen(SolarSystemGame game) {
         this.game = game;
     }
 
-    /**
-     * This method is called when this screen becomes the current screen for a Game.
-     * It initializes the viewport and stage, sets the input processor to the stage,
-     * and calls the methods to create the solar system and UI controls.
-     */
     @Override
     public void show() {
+        initializeWorld();
+        initializeCameraAndViewport();
+        initializeStage();
+        setupInputProcessors();
+        loadResources();
+        createSolarSystem();
+    }
+
+    private void initializeWorld() {
+        worldPhysics = new World(new Vector2(0, 0), true);
+    }
+
+    private void initializeCameraAndViewport() {
         worldCamera = new OrthographicCamera();
-        worldViewport = new ExtendViewport(400, 300, worldCamera); // Extend in one direction
+        worldViewport = new ExtendViewport(VIEWPORT_WIDTH_PIXELS_INIT, VIEWPORT_HEIGHT_PIXELS_INIT, worldCamera);
         worldViewport.setScaling(Scaling.contain);
+    }
 
+    private void initializeStage() {
         worldStage = new Stage(worldViewport);
+        spriteBatch = worldStage.getBatch();
+    }
 
+    private void setupInputProcessors() {
         InputMultiplexer multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(new InputAdapter() {
             @Override
@@ -64,148 +83,153 @@ public class SolarSystemScreen implements Screen {
         });
         multiplexer.addProcessor(worldStage);
         Gdx.input.setInputProcessor(multiplexer);
-
-        createSolarSystem();
     }
 
-    /**
-     * This method is responsible for creating the solar system in the game.
-     * It creates a sun and an earth and adds them to the stage.
-     * More celestial bodies can be added as needed.
-     */
+    private void loadResources() {
+        sunTexture = new Texture(Gdx.files.internal("sprites/Lava.png"));
+        sunRegion = new TextureRegion(sunTexture);
+        earthTexture = new Texture(Gdx.files.internal("sprites/Terran.png"));
+        earthRegion = new TextureRegion(earthTexture);
+    }
+
+    private void createSun() {
+        // Code to create a static body for the sun
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.StaticBody;
+        bodyDef.position.set(Gdx.graphics.getWidth() / 2f / PIXELS_TO_METERS, Gdx.graphics.getHeight() / 2f / PIXELS_TO_METERS);
+
+        sunBody = worldPhysics.createBody(bodyDef);
+
+        CircleShape shape = new CircleShape();
+        shape.setRadius(SUN_RADIUS_PIXELS / PIXELS_TO_METERS);
+
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = shape;
+        fixtureDef.density = 1f;
+
+        sunBody.createFixture(fixtureDef);
+        shape.dispose();
+    }
+
+    private void createEarth() {
+        // Adjust these values as needed
+        Vector2 initialPosition = new Vector2(sunBody.getPosition().x + (float) EARTH_DISTANCE_TO_SUN_PIXELS / Constants.PIXELS_TO_METERS, sunBody.getPosition().y);
+
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.DynamicBody;
+        bodyDef.position.set(initialPosition);
+
+        earthBody = worldPhysics.createBody(bodyDef);
+
+        CircleShape shape = new CircleShape();
+        shape.setRadius((float) EARTH_RADIUS_PIXELS / Constants.PIXELS_TO_METERS);
+
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = shape;
+        fixtureDef.density = 1f;
+
+        earthBody.createFixture(fixtureDef);
+        shape.dispose();
+    }
+
     private void createSolarSystem() {
-
-        sun = createCelestialBody("sprites/sun.png", 100, 100);
-        worldStage.addActor(sun);
-        sun.setPosition(Gdx.graphics.getWidth() / 2f - sun.getWidth() / 2, Gdx.graphics.getHeight() / 2f - sun.getHeight() / 2);
-        sun.setOrigin(sun.getWidth() / 2, sun.getHeight() / 2);
-
-        earth = createCelestialBody("sprites/earth.png", 50, 50);
-        earth.setPosition(sun.getX() + sun.getWidth(), sun.getY()); // Set initial position of earth
-        worldStage.addActor(earth);
-
-        /*mercury = createCelestialBody("sprites/mercury.png", 25, 25);
-        worldStage.addActor(mercury);
-        mercury.setPosition(50, 0);
-        orbitCelestialBody(mercury, sun, Constants.MERCURY_ROTATION_SPEED, 1);
-
-        moon = createCelestialBody("sprites/moon.png", 10, 10);
-        worldStage.addActor(moon);
-        moon.setPosition(25, 0);
-        orbitCelestialBody(moon, earth, Constants.MOON_ROTATION_SPEED, 1);*/
+        createSun();
+        createEarth();
     }
 
-    private void orbitCelestialBody(Actor orbitingBody, Actor orbitedBody, float orbitSpeed, float delta) {
-        float centerX = orbitedBody.getX() + orbitedBody.getWidth() / 2;
-        float centerY = orbitedBody.getY() + orbitedBody.getHeight() / 2;
+    private void handleEarthRotation() {
+        Vector2 centerToEarth = earthBody.getPosition().sub(sunBody.getPosition());
 
-        float angle = (float) (Math.atan2(orbitingBody.getY() - centerY, orbitingBody.getX() - centerX) + orbitSpeed * delta * SPEED_FACTOR);
-        float distance = (float) Math.hypot(orbitingBody.getX() - centerX, orbitingBody.getY() - centerY);
-
-        orbitingBody.setPosition(centerX + distance * (float) Math.cos(angle), centerY + distance * (float) Math.sin(angle));
+        Vector2 tangentVelocity = new Vector2(-centerToEarth.y, centerToEarth.x);
+        tangentVelocity.nor(); // Normalize to get direction
+        tangentVelocity.scl(EARTH_ORBIT_SPEED); // Scale by the desired speed
+        earthBody.setLinearVelocity(tangentVelocity.x, tangentVelocity.y);
     }
 
-    private Actor createCelestialBody(String texturePath, float width, float height) {
 
-        Texture texture = new Texture(Gdx.files.internal(texturePath));
-
-        Image celestialBody = new Image(texture);
-
-        celestialBody.setSize(width, height);
-
-        return celestialBody;
-    }
-
-    private void manualRotate() {
-        sun.rotateBy(10);
-    }
-
-    private void rotateCelestialBody(Actor celestialBody, float rotationSpeed, float delta) {
-        celestialBody.rotateBy(rotationSpeed * delta * SPEED_FACTOR);
-    }
-
-    /*private void rotate(float delta) {
-        sun.rotateBy(Constants.SUN_ROTATION_SPEED * delta);
-    }*/
-
-    /**
-     * This method creates the UI controls for the game.
-     * It creates a skin from a file, creates a rotate button with the skin,
-     * sets the position of the button, adds a click listener to the button that rotates all actors on the stage,
-     * and adds the button to the stage.
-     */
-    /*private void createUIControls() {
-        // Create a new Skin from the file "uiskin.json"
-        Skin skin = new Skin(Gdx.files.internal("lgdxs/skin/lgdxs-ui.json"));
-
-        // Create a new TextButton with the text "Rotate" and the skin
-        TextButton rotateButton = new TextButton("Rotate", skin);
-
-        // Set the position of the button to the top left of the screen
-        rotateButton.setPosition(0, uiViewport.getWorldHeight() - rotateButton.getHeight());
-
-        // Add a ClickListener to the button
-        rotateButton.addListener(new ClickListener() {
-            // Override the clicked method to rotate all actors on the stage by 10 degrees when the button is clicked
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                manualRotate();
-            }
-        });
-
-        // Add the button to the stage
-        uiStage.addActor(rotateButton);
-    }*/
     @Override
     public void render(float delta) {
+        handleEarthRotation();
+        clearScreen();
+        stepWorld(delta);
+
+        spriteBatch.begin();
+        drawSun();
+        drawEarth();
+        spriteBatch.end();
+
+        updateWorldStage(delta);
+    }
+
+    private void clearScreen() {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+    }
 
-        // rotate(delta);
-        rotateCelestialBody(sun, Constants.SUN_ROTATION_SPEED, delta);
-        // rotateCelestialBody(earth, Constants.EARTH_ROTATION_SPEED, delta);
-        /*rotateCelestialBody(mercury, Constants.MERCURY_ROTATION_SPEED, delta);*/
+    private void stepWorld(float delta) {
+        // Add the frame's delta time to the accumulator.
+        physics_accumulator += delta;
 
-        orbitCelestialBody(earth, sun, Constants.EARTH_ROTATION_SPEED, 1);
+        // Run the simulation for as many fixed steps as the accumulator can cover.
+        while (physics_accumulator >= PHYSICS_TIME_STEP) {
+            worldPhysics.step(PHYSICS_TIME_STEP, PHYSICS_VELOCITY_ITERATIONS, PHYSICS_POSITION_ITERATIONS);
+            physics_accumulator -= PHYSICS_TIME_STEP;
+        }
+    }
 
+    private void drawSun() {
+        Vector2 bodyPos = sunBody.getPosition();
+        float rotation = MathUtils.radiansToDegrees * sunBody.getAngle();
+        drawCelestialBody(sunRegion, bodyPos, rotation, SUN_RADIUS_PIXELS);
+    }
 
+    private void drawEarth() {
+        Vector2 bodyPos = earthBody.getPosition();
+        drawCelestialBody(earthRegion, bodyPos, 0, NO_SCALING); // Earth does not scale like the sun in this example, hence -1 for scale factor
+    }
+
+    private void drawCelestialBody(TextureRegion region, Vector2 position, float rotation, float scalePixels) {
+        float scale = scalePixels > 0 ? (scalePixels * 2) / region.getRegionWidth() : 1; // Only scale if scalePixels is positive
+        float screenX = position.x * Constants.PIXELS_TO_METERS - (float) region.getRegionWidth() / 2;
+        float screenY = position.y * Constants.PIXELS_TO_METERS - (float) region.getRegionHeight() / 2;
+
+        spriteBatch.draw(region, screenX, screenY, region.getRegionWidth() / 2f, region.getRegionHeight() / 2f, region.getRegionWidth(), region.getRegionHeight(), scale, scale, rotation);
+    }
+
+    private void updateWorldStage(float delta) {
         worldCamera.update();
         worldStage.act(delta);
         worldStage.draw();
     }
 
     public void zoomIn() {
-        worldCamera.zoom *= Constants.ZOOM_IN_FACTOR;
+        worldCamera.zoom *= ZOOM_IN_FACTOR;
     }
 
     public void zoomOut() {
-        worldCamera.zoom *= Constants.ZOOM_OUT_FACTOR;
+        worldCamera.zoom *= ZOOM_OUT_FACTOR;
     }
-
 
     @Override
     public void resize(int width, int height) {
         worldViewport.update(width, height);
     }
 
+    @Override
+    public void dispose() {
+        worldStage.dispose();
+        sunTexture.dispose();
+        earthTexture.dispose();
+    }
 
     @Override
     public void pause() {
-
     }
 
     @Override
     public void resume() {
-
     }
 
     @Override
     public void hide() {
-
-    }
-
-    @Override
-    public void dispose() {
-        worldStage.dispose();
     }
 }
-
