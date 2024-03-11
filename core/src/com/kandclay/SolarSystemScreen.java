@@ -27,20 +27,52 @@ public class SolarSystemScreen implements Screen {
     private OrthographicCamera worldCamera;
     private Batch spriteBatch;
 
-    //Sun
-    public Body sunBody;
-    private TextureRegion sunRegion;
-    private Texture sunTexture;
+    // Planetary bodies
+    public class CelestialBody {
+        public Body body;
+        private Texture texture;
+        private TextureRegion region;
+        private float radius;
+        private float orbitSpeed;
 
-    // Earth
-    public Body earthBody;
-    private Texture earthTexture;
-    private TextureRegion earthRegion;
+        public CelestialBody(String texturePath, BodyDef.BodyType bodyType, float radius, float orbitSpeed, Vector2 position, float density) {
+            this.texture = new Texture(Gdx.files.internal(texturePath));
+            this.region = new TextureRegion(texture);
+            this.radius = radius;
+            this.orbitSpeed = orbitSpeed;
+            createBody(bodyType, radius, position, density);
+        }
 
-    // Ice Planet
-    private Body icePlanetBody;
-    private Texture icePlanetTexture;
-    private TextureRegion icePlanetRegion;
+        private void createBody(BodyDef.BodyType bodyType, float radius, Vector2 position, float density) {
+            BodyDef bodyDef = new BodyDef();
+            bodyDef.type = bodyType;
+            bodyDef.position.set(position);
+
+            body = world.createBody(bodyDef);
+
+            CircleShape shape = new CircleShape();
+            shape.setRadius(radius);
+
+            FixtureDef fixtureDef = new FixtureDef();
+            fixtureDef.shape = shape;
+            fixtureDef.density = density;
+
+            body.createFixture(fixtureDef);
+            shape.dispose();
+        }
+
+        public void draw() {
+            Vector2 bodyPos = body.getPosition();
+            float rotation = MathUtils.radiansToDegrees * body.getAngle();
+            float scale = (float) (radius * 2) / region.getRegionWidth();
+            float screenX = bodyPos.x * PIXELS_TO_METERS - region.getRegionWidth() / 2f;
+            float screenY = bodyPos.y * PIXELS_TO_METERS - region.getRegionHeight() / 2f;
+
+            spriteBatch.draw(region, screenX, screenY, region.getRegionWidth() / 2f, region.getRegionHeight() / 2f, region.getRegionWidth(), region.getRegionHeight(), scale, scale, rotation);
+        }
+    }
+
+    private CelestialBody sun, earth, icePlanet, moon;
 
     public SolarSystemScreen(SolarSystemGame game) {
         this.game = game;
@@ -89,108 +121,50 @@ public class SolarSystemScreen implements Screen {
         Gdx.input.setInputProcessor(multiplexer);
     }
 
-    private void createSun() {
-
-        sunTexture = new Texture(Gdx.files.internal("sprites/Lava.png"));
-        sunRegion = new TextureRegion(sunTexture);
-
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.StaticBody;
-        bodyDef.position.set(Gdx.graphics.getWidth() / 2f / PIXELS_TO_METERS, Gdx.graphics.getHeight() / 2f / PIXELS_TO_METERS);
-
-        sunBody = world.createBody(bodyDef);
-
-        CircleShape shape = new CircleShape();
-        shape.setRadius(SUN_RADIUS_PIXELS / PIXELS_TO_METERS);
-
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = shape;
-        fixtureDef.density = 1f;
-
-        sunBody.createFixture(fixtureDef);
-        shape.dispose();
-    }
-
-    private void createEarth() {
-        earthTexture = new Texture(Gdx.files.internal("sprites/Terran.png"));
-        earthRegion = new TextureRegion(earthTexture);
-
-        float bodyXPosition = sunBody.getPosition().x + (float) EARTH_DISTANCE_TO_SUN_PIXELS / Constants.PIXELS_TO_METERS;
-        Vector2 initialPosition = new Vector2(bodyXPosition, sunBody.getPosition().y);
-
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.DynamicBody;
-        bodyDef.position.set(initialPosition);
-
-        earthBody = world.createBody(bodyDef);
-
-        CircleShape shape = new CircleShape();
-        shape.setRadius((float) EARTH_RADIUS_PIXELS / Constants.PIXELS_TO_METERS);
-
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = shape;
-        fixtureDef.density = 1f;
-
-        earthBody.createFixture(fixtureDef);
-        shape.dispose();
-    }
-
-    private void createIcePlanet() {
-        // Load ice planet texture
-        icePlanetTexture = new Texture(Gdx.files.internal("sprites/Ice.png"));
-        icePlanetRegion = new TextureRegion(icePlanetTexture);
-
-        // Position the ice planet relative to the sun, similar to Earth
-        float bodyXPosition = sunBody.getPosition().x + (float) ICE_DISTANCE_TO_SUN_PIXELS / Constants.PIXELS_TO_METERS;
-        Vector2 initialPosition = new Vector2(bodyXPosition, sunBody.getPosition().y);
-
-        // Define the ice planet body
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.DynamicBody;
-        bodyDef.position.set(initialPosition);
-
-        icePlanetBody = world.createBody(bodyDef);
-
-        // Define the shape of the ice planet
-        CircleShape shape = new CircleShape();
-        shape.setRadius((float) ICE_RADIUS_PIXELS / Constants.PIXELS_TO_METERS);
-
-        // Attach fixture to the ice planet body
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = shape;
-        fixtureDef.density = 1f;
-
-        icePlanetBody.createFixture(fixtureDef);
-        shape.dispose();
-    }
-
     private void createSolarSystem() {
-        createSun();
-        createEarth();
-        createIcePlanet();
+        Vector2 sunPosition = new Vector2(Gdx.graphics.getWidth() / 2f / PIXELS_TO_METERS, Gdx.graphics.getHeight() / 2f / PIXELS_TO_METERS);
+        sun = new CelestialBody("sprites/Lava.png", BodyDef.BodyType.StaticBody, SUN_RADIUS_PIXELS / PIXELS_TO_METERS, 0, sunPosition, 1f);
+
+        Vector2 earthPosition = sun.body.getPosition().cpy().add(EARTH_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, 0);
+        earth = new CelestialBody("sprites/Terran.png", BodyDef.BodyType.DynamicBody, EARTH_RADIUS_PIXELS / PIXELS_TO_METERS, EARTH_ORBIT_SPEED, earthPosition, 1f);
+
+        Vector2 icePlanetPosition = sun.body.getPosition().cpy().add(ICE_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, 0);
+        icePlanet = new CelestialBody("sprites/Ice.png", BodyDef.BodyType.DynamicBody, ICE_RADIUS_PIXELS / PIXELS_TO_METERS, ICE_ORBIT_SPEED, icePlanetPosition, 1f);
+
+        Vector2 moonPosition = earth.body.getPosition().cpy().add(MOON_DISTANCE_TO_EARTH_PIXELS / PIXELS_TO_METERS, 0);
+        moon = new CelestialBody("sprites/Baren.png", BodyDef.BodyType.DynamicBody, MOON_RADIUS_PIXELS / PIXELS_TO_METERS, MOON_ORBIT_SPEED, moonPosition, 1f);
     }
 
     public void manageOrbits() {
-        adjustEarthVelocity();
-        adjustIcePlanetVelocity();
+        adjustOrbitVelocity(moon, earth, MOON_DISTANCE_TO_EARTH_PIXELS / PIXELS_TO_METERS);
+        adjustOrbitVelocity(earth, sun, EARTH_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS);
+        adjustOrbitVelocity(icePlanet, sun, ICE_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS);
     }
 
-    public void adjustEarthVelocity() {
-        Vector2 centerToEarth = earthBody.getPosition().sub(sunBody.getPosition());
+    public void adjustOrbitVelocity(CelestialBody orbitingBody, CelestialBody centralBody, float desiredOrbitDistance) {
+        Vector2 centerToBody = orbitingBody.body.getPosition().sub(centralBody.body.getPosition());
+        float currentDistance = centerToBody.len();
 
-        Vector2 tangentVelocity = new Vector2(-centerToEarth.y, centerToEarth.x);
-        tangentVelocity.nor(); // Normalize to get direction
-        tangentVelocity.scl(EARTH_ORBIT_SPEED); // Scale by the desired speed
-        earthBody.setLinearVelocity(tangentVelocity.x, tangentVelocity.y);
+        // Calculate the tangent velocity for a stable orbit
+        Vector2 tangentVelocity = new Vector2(-centerToBody.y, centerToBody.x).nor().scl(orbitingBody.orbitSpeed);
+
+        // If the moon is drifting away, adjust the speed to bring it closer, or slow it down if it's too close
+        if (currentDistance > desiredOrbitDistance) {
+            tangentVelocity.scl((desiredOrbitDistance / currentDistance));
+        } else if (currentDistance < desiredOrbitDistance) {
+            tangentVelocity.scl((currentDistance / desiredOrbitDistance));
+        }
+
+        Vector2 adjustedVelocity = tangentVelocity.add(centralBody.body.getLinearVelocity());
+        orbitingBody.body.setLinearVelocity(adjustedVelocity.x, adjustedVelocity.y);
     }
 
-    public void adjustIcePlanetVelocity() {
-        Vector2 centerToIcePlanet = icePlanetBody.getPosition().sub(sunBody.getPosition());
 
-        Vector2 tangentVelocity = new Vector2(-centerToIcePlanet.y, centerToIcePlanet.x);
-        tangentVelocity.nor(); // Normalize to get direction
-        tangentVelocity.scl(ICE_ORBIT_SPEED); // Adjust orbit speed as desired
-        icePlanetBody.setLinearVelocity(tangentVelocity.x, tangentVelocity.y);
+    private void drawSolarSystem() {
+        drawSun();
+        drawEarth();
+        drawIce();
+        drawMoon();
     }
 
     @Override
@@ -200,9 +174,7 @@ public class SolarSystemScreen implements Screen {
         stepWorld(delta);
 
         spriteBatch.begin();
-        drawSun();
-        drawEarth();
-        drawIce();
+        drawSolarSystem();
         spriteBatch.end();
 
         updateWorldStage(delta);
@@ -218,19 +190,24 @@ public class SolarSystemScreen implements Screen {
     }
 
     private void drawSun() {
-        Vector2 bodyPos = sunBody.getPosition();
-        float rotation = MathUtils.radiansToDegrees * sunBody.getAngle();
-        drawCelestialBody(sunRegion, bodyPos, rotation, SUN_RADIUS_PIXELS);
+        Vector2 bodyPos = sun.body.getPosition();
+        float rotation = MathUtils.radiansToDegrees * sun.body.getAngle();
+        drawCelestialBody(sun.region, bodyPos, rotation, SUN_RADIUS_PIXELS);
     }
 
     private void drawEarth() {
-        Vector2 bodyPos = earthBody.getPosition();
-        drawCelestialBody(earthRegion, bodyPos, 0, NO_SCALING); // Earth does not scale like the sun in this example, hence -1 for scale factor
+        Vector2 bodyPos = earth.body.getPosition();
+        drawCelestialBody(earth.region, bodyPos, 0, EARTH_RADIUS_PIXELS);
     }
 
     private void drawIce() {
-        Vector2 bodyPos = icePlanetBody.getPosition();
-        drawCelestialBody(icePlanetRegion, bodyPos, 0, NO_SCALING); // Ice planet does not scale like the sun in this example, hence -1 for scale factor
+        Vector2 bodyPos = icePlanet.body.getPosition();
+        drawCelestialBody(icePlanet.region, bodyPos, 0, ICE_RADIUS_PIXELS);
+    }
+
+    private void drawMoon() {
+        Vector2 bodyPos = moon.body.getPosition();
+        drawCelestialBody(moon.region, bodyPos, 0, MOON_RADIUS_PIXELS);
     }
 
     private void drawCelestialBody(TextureRegion region, Vector2 position, float rotation, float scalePixels) {
@@ -263,8 +240,10 @@ public class SolarSystemScreen implements Screen {
     @Override
     public void dispose() {
         worldStage.dispose();
-        sunTexture.dispose();
-        earthTexture.dispose();
+        sun.texture.dispose();
+        earth.texture.dispose();
+        icePlanet.texture.dispose();
+        moon.texture.dispose();
     }
 
     @Override
