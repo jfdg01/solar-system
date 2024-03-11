@@ -26,6 +26,7 @@ public class SolarSystemScreen implements Screen {
     private ExtendViewport worldViewport;
     private OrthographicCamera worldCamera;
     private Batch spriteBatch;
+    private Texture backgroundTexture;
 
     // Planetary bodies
     public class CelestialBody {
@@ -85,6 +86,8 @@ public class SolarSystemScreen implements Screen {
         initializeStage();
         setupInputProcessors();
         createSolarSystem();
+        backgroundTexture = new Texture(Gdx.files.internal("sprites/background.png"));
+
     }
 
     private void initializeWorld() {
@@ -141,30 +144,40 @@ public class SolarSystemScreen implements Screen {
         adjustOrbitVelocity(icePlanet, sun, ICE_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS);
     }
 
-    public void adjustOrbitVelocity(CelestialBody orbitingBody, CelestialBody centralBody, float desiredOrbitDistance) {
+    public void adjustOrbitVelocity(CelestialBody orbitingBody, CelestialBody centralBody, float maxOrbitDistance) {
         Vector2 centerToBody = orbitingBody.body.getPosition().sub(centralBody.body.getPosition());
         float currentDistance = centerToBody.len();
 
-        // Calculate the tangent velocity for a stable orbit
+        // Calculate the tangent velocity for the orbiting body
         Vector2 tangentVelocity = new Vector2(-centerToBody.y, centerToBody.x).nor().scl(orbitingBody.orbitSpeed);
 
-        // If the moon is drifting away, adjust the speed to bring it closer, or slow it down if it's too close
-        if (currentDistance > desiredOrbitDistance) {
-            tangentVelocity.scl((desiredOrbitDistance / currentDistance));
-        } else if (currentDistance < desiredOrbitDistance) {
-            tangentVelocity.scl((currentDistance / desiredOrbitDistance));
+        // If the current distance exceeds the maximum allowed distance, adjust the velocity to bring the orbiting body closer
+        if (currentDistance > maxOrbitDistance) {
+            // Calculate a correction vector that points towards the central body
+            Vector2 correctionVector = centerToBody.scl(-1).nor().scl(orbitingBody.orbitSpeed * 0.5f); // Apply a gentle pull towards the central body
+            tangentVelocity.add(correctionVector);
         }
 
+        // Adjust the orbiting body's velocity, considering the central body's movement as well
         Vector2 adjustedVelocity = tangentVelocity.add(centralBody.body.getLinearVelocity());
         orbitingBody.body.setLinearVelocity(adjustedVelocity.x, adjustedVelocity.y);
     }
-
 
     private void drawSolarSystem() {
         drawSun();
         drawEarth();
         drawIce();
         drawMoon();
+    }
+
+    private void drawBackground() {
+        float width = worldViewport.getWorldWidth();
+        float height = worldViewport.getWorldHeight();
+        for (int x = -(int) width; x < width; x += backgroundTexture.getWidth()) {
+            for (int y = -(int) height; y < height; y += backgroundTexture.getHeight()) {
+                spriteBatch.draw(backgroundTexture, x, y);
+            }
+        }
     }
 
     @Override
@@ -174,6 +187,7 @@ public class SolarSystemScreen implements Screen {
         stepWorld(delta);
 
         spriteBatch.begin();
+        drawBackground();
         drawSolarSystem();
         spriteBatch.end();
 
@@ -192,7 +206,7 @@ public class SolarSystemScreen implements Screen {
     private void drawSun() {
         Vector2 bodyPos = sun.body.getPosition();
         float rotation = MathUtils.radiansToDegrees * sun.body.getAngle();
-        drawCelestialBody(sun.region, bodyPos, rotation, SUN_RADIUS_PIXELS);
+        drawCelestialBody(sun.region, bodyPos, rotation, SUN_RADIUS_PIXELS * 2);
     }
 
     private void drawEarth() {
@@ -244,6 +258,7 @@ public class SolarSystemScreen implements Screen {
         earth.texture.dispose();
         icePlanet.texture.dispose();
         moon.texture.dispose();
+        backgroundTexture.dispose();
     }
 
     @Override
