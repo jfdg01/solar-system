@@ -20,10 +20,12 @@ public class CelestialBody {
     private Texture animationTexture;
     private Batch spriteBatch;
 
-    public CelestialBody(World world, BodyDef.BodyType bodyType, float radius, float orbitSpeed, Vector2 position, float density, Batch spriteBatch) {
+    public CelestialBody(World world, BodyDef.BodyType bodyType, float radius, float orbitSpeed, Vector2 position,
+                         float density, Batch spriteBatch, TextureRegion region) {
         this.radius = radius;
         this.orbitSpeed = orbitSpeed;
         this.spriteBatch = spriteBatch;
+        this.region = region;
         createBody(world, bodyType, radius, position, density);
     }
 
@@ -59,7 +61,8 @@ public class CelestialBody {
         float screenY = position.y * Constants.PIXELS_TO_METERS - region.getRegionHeight() / 2f;
         float rotation = MathUtils.radiansToDegrees * this.body.getAngle();
 
-        spriteBatch.draw(region, screenX, screenY, region.getRegionWidth() / 2f, region.getRegionHeight() / 2f, region.getRegionWidth(), region.getRegionHeight(), scale, scale, rotation);
+        spriteBatch.draw(region, screenX, screenY, region.getRegionWidth() / 2f, region.getRegionHeight() / 2f,
+                region.getRegionWidth(), region.getRegionHeight(), scale, scale, rotation);
     }
 
     public TextureRegion getRegion() {
@@ -116,15 +119,6 @@ public class CelestialBody {
 
     public void setAnimationTexture(Texture sunAnimTexture) {
         this.animationTexture = sunAnimTexture;
-    }
-
-    public void dispose() {
-        if (texture != null) {
-            texture.dispose();
-        }
-        if (animationTexture != null) {
-            animationTexture.dispose();
-        }
     }
 }
 
