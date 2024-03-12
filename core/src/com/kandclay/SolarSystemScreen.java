@@ -23,7 +23,7 @@ import static com.kandclay.Constants.*;
 
 public class SolarSystemScreen implements Screen {
     private final SolarSystemGame game;
-    private AssetManager assetManager;
+    private final AssetManager assetManager;
     private TextureAtlas atlas;
     private World world;
     private Stage worldStage;
@@ -32,6 +32,7 @@ public class SolarSystemScreen implements Screen {
     private Batch spriteBatch;
     private float stateTime = 0;
     private CelestialBody sun, earth, saturn, moon;
+    String backgroundPath;
 
 
     public SolarSystemScreen(SolarSystemGame game) {
@@ -41,8 +42,10 @@ public class SolarSystemScreen implements Screen {
     }
 
     private void loadAssets() {
+        backgroundPath = "sprites/backgroundSimple.png";
+
         assetManager.load("sprites/atlas/solarSystemAssets.atlas", TextureAtlas.class);
-        assetManager.load("sprites/background.png", Texture.class);
+        assetManager.load(backgroundPath, Texture.class);
         assetManager.load("sprites/anim/earth.png", Texture.class);
         assetManager.load("sprites/anim/saturn.png", Texture.class);
         assetManager.load("sprites/anim/moon.png", Texture.class);
@@ -130,7 +133,7 @@ public class SolarSystemScreen implements Screen {
             }
         }
 
-        return new Animation<>(FRAME_DURATION, animationFrames);
+        return new Animation<TextureRegion>(FRAME_DURATION, animationFrames);
     }
 
     private CelestialBody createCelestialBody(BodyDef.BodyType bodyType, float radius, float orbitSpeed,
@@ -173,30 +176,45 @@ public class SolarSystemScreen implements Screen {
     }
 
     private void drawBackground() {
-        // Calculate the visible area taking into account zoom and ensuring the background covers the entire screen.
+        Texture backgroundTexture = assetManager.get(backgroundPath, Texture.class);
+        float backgroundWidth = backgroundTexture.getWidth();
+        float backgroundHeight = backgroundTexture.getHeight();
+
+        // Calculate visible area considering zoom
         float visibleWidth = worldViewport.getWorldWidth() * worldCamera.zoom;
         float visibleHeight = worldViewport.getWorldHeight() * worldCamera.zoom;
 
-        Texture backgroundTexture = assetManager.get("sprites/background.png", Texture.class);
+        // Center position of the background relative to the world coordinates
+        float centerX = worldCamera.position.x;
+        float centerY = worldCamera.position.y;
 
-        // Calculate the offset based on the camera's position to make the background appear stationary.
-        // This adjustment makes the background's starting point align with the world's coordinate system.
-        float startX = (worldCamera.position.x - visibleWidth / 2) - (worldCamera.position.x % backgroundTexture.getWidth());
-        float startY = (worldCamera.position.y - visibleHeight / 2) - (worldCamera.position.y % backgroundTexture.getHeight());
+        // Calculate the offset to align the background center with the camera center
+        float startX = centerX - (backgroundWidth / 2);
+        float startY = centerY - (backgroundHeight / 2);
 
-        for (float x = startX; x < startX + visibleWidth; x += backgroundTexture.getWidth()) {
-            for (float y = startY; y < startY + visibleHeight; y += backgroundTexture.getHeight()) {
-                spriteBatch.draw(backgroundTexture, x, y);
+        // Calculate the required number of tiles to cover the visible area, including extra for zooming out
+        int tilesX = (int) Math.ceil(visibleWidth / backgroundWidth) + 2; // Adding 2 for padding
+        int tilesY = (int) Math.ceil(visibleHeight / backgroundHeight) + 2; // Adding 2 for padding
+
+        // Adjust for initial layer to be centered
+        startX -= (tilesX / 2) * backgroundWidth;
+        startY -= (tilesY / 2) * backgroundHeight;
+
+        // Draw the background tiles
+        for (int x = 0; x < tilesX; x++) {
+            for (int y = 0; y < tilesY; y++) {
+                spriteBatch.draw(backgroundTexture, startX + (x * backgroundWidth), startY + (y * backgroundHeight));
             }
         }
     }
+
 
     @Override
     public void render(float delta) {
         stateTime += delta;
         manageOrbits();
         clearScreen();
-        stepWorld(delta);
+        stepWorld();
 
         spriteBatch.begin();
         drawBackground();
@@ -210,27 +228,23 @@ public class SolarSystemScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
     }
 
-    private void stepWorld(float delta) {
+    private void stepWorld() {
         world.step(1f / PHYSICS_TIME_STEP, PHYSICS_VELOCITY_ITERATIONS, PHYSICS_POSITION_ITERATIONS);
     }
 
     private void drawSun() {
-        //drawBody(sun, SUN_RADIUS_PIXELS * 2);
         sun.draw(stateTime);
     }
 
     private void drawEarth() {
-        // drawBody(earth, EARTH_RADIUS_PIXELS);
         earth.draw(stateTime);
     }
 
     private void drawIce() {
-        //drawBody(icePlanet, ICE_RADIUS_PIXELS);
         saturn.draw(stateTime);
     }
 
     private void drawMoon() {
-        //drawBody(moon, MOON_RADIUS_PIXELS);
         moon.draw(stateTime);
     }
 

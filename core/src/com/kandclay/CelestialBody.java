@@ -1,10 +1,7 @@
 package com.kandclay;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
@@ -15,7 +12,7 @@ public class CelestialBody {
     private float radius;
     private float orbitSpeed;
     private Animation<TextureRegion> animation;
-    private Batch spriteBatch;
+    private final Batch spriteBatch;
 
     public CelestialBody(World world, BodyDef.BodyType bodyType, float radius, float orbitSpeed, Vector2 position,
                          Batch spriteBatch, Animation<TextureRegion> animation) {
@@ -23,11 +20,11 @@ public class CelestialBody {
         this.orbitSpeed = orbitSpeed;
         this.spriteBatch = spriteBatch;
         this.animation = animation;
-        createBody(world, bodyType, radius, position, 1f);
+        createBody(world, bodyType, radius, position);
     }
 
 
-    private void createBody(World world, BodyDef.BodyType bodyType, float radius, Vector2 position, float density) {
+    private void createBody(World world, BodyDef.BodyType bodyType, float radius, Vector2 position) {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = bodyType;
         bodyDef.position.set(position);
@@ -39,7 +36,7 @@ public class CelestialBody {
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
-        fixtureDef.density = density;
+        fixtureDef.density = (float) 1.0;
 
         body.createFixture(fixtureDef);
         shape.dispose();

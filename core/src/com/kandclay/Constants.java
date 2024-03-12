@@ -13,7 +13,7 @@ public class Constants {
     // Animation
     public static final int ANIMATION_NUM_ROWS = 32;
     public static final int ANIMATION_NUM_COLS = 32;
-    public static final float FRAME_DURATION = 0.01f;
+    public static final float FRAME_DURATION = 0.03f;
 
     // Sun
     public static final float SUN_RADIUS_PIXELS = 100;
@@ -21,14 +21,15 @@ public class Constants {
     // Earth
     public static final float EARTH_ORBIT_SPEED = 2;
     public static final float EARTH_RADIUS_PIXELS = 16;
-    public static final float EARTH_DISTANCE_TO_SUN_PIXELS = 500;
-    // Ice
+    public static final float EARTH_DISTANCE_TO_SUN_PIXELS = 400;
+
+    // Saturn
     public static final float SATURN_ORBIT_SPEED = 1.5f;
-    public static final float SATURN_RADIUS_PIXELS = 64;
-    public static final float SATURN_DISTANCE_TO_SUN_PIXELS = 750;
+    public static final float SATURN_RADIUS_PIXELS = 80;
+    public static final float SATURN_DISTANCE_TO_SUN_PIXELS = 1200;
 
     // Moon
     static final float MOON_ORBIT_SPEED = 3f;
-    static final float MOON_RADIUS_PIXELS = 5;
-    static final float MOON_DISTANCE_TO_EARTH_PIXELS = 50;
+    static final float MOON_RADIUS_PIXELS = 6;
+    static final float MOON_DISTANCE_TO_EARTH_PIXELS = 150;
 }
