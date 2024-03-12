@@ -8,7 +8,7 @@ import com.kandclay.SolarSystemGame;
 public class DesktopLauncher {
 	public static void main (String[] arg) {
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
-		config.setForegroundFPS(60);
+		config.setForegroundFPS(240);
 		config.setTitle("SolarSystem");
 		new Lwjgl3Application(new SolarSystemGame(), config);
 	}

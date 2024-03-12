@@ -30,9 +30,8 @@ public class SolarSystemScreen implements Screen {
     private ExtendViewport worldViewport;
     private OrthographicCamera worldCamera;
     private Batch spriteBatch;
-    private Texture backgroundTexture;
     private float stateTime = 0;
-    private CelestialBody sun, earth, icePlanet, moon;
+    private CelestialBody sun, earth, saturn, moon;
 
 
     public SolarSystemScreen(SolarSystemGame game) {
@@ -43,6 +42,11 @@ public class SolarSystemScreen implements Screen {
 
     private void loadAssets() {
         assetManager.load("sprites/atlas/solarSystemAssets.atlas", TextureAtlas.class);
+        assetManager.load("sprites/background.png", Texture.class);
+        assetManager.load("sprites/anim/earth.png", Texture.class);
+        assetManager.load("sprites/anim/saturn.png", Texture.class);
+        assetManager.load("sprites/anim/moon.png", Texture.class);
+        assetManager.load("sprites/anim/sun.png", Texture.class);
         assetManager.finishLoading();
 
         atlas = assetManager.get("sprites/atlas/solarSystemAssets.atlas", TextureAtlas.class);
@@ -55,8 +59,6 @@ public class SolarSystemScreen implements Screen {
         initializeStage();
         setupInputProcessors();
         createSolarSystem();
-        backgroundTexture = new Texture(Gdx.files.internal("sprites/background.png"));
-
     }
 
     private void initializeWorld() {
@@ -96,25 +98,29 @@ public class SolarSystemScreen implements Screen {
     private void createSolarSystem() {
         Vector2 sunPosition = new Vector2(Gdx.graphics.getWidth() / 2f / PIXELS_TO_METERS, Gdx.graphics.getHeight() / 2f / PIXELS_TO_METERS);
         float sunRadius = SUN_RADIUS_PIXELS / PIXELS_TO_METERS;
-        sun = createCelestialBody(world, BodyDef.BodyType.StaticBody, sunRadius, 0, sunPosition, "sun", "sunAnim", FRAME_DURATION, 200, 200);
+        sun = createCelestialBody(BodyDef.BodyType.StaticBody, sunRadius, 0, sunPosition, "sun");
 
         Vector2 earthPosition = new Vector2(sunPosition.x + EARTH_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, sunPosition.y);
         float earthRadius = EARTH_RADIUS_PIXELS / PIXELS_TO_METERS;
-        earth = createCelestialBody(world, BodyDef.BodyType.DynamicBody, earthRadius, EARTH_ORBIT_SPEED, earthPosition, "terran", "earthAnim", FRAME_DURATION, 100, 100);
+        earth = createCelestialBody(BodyDef.BodyType.DynamicBody, earthRadius, EARTH_ORBIT_SPEED, earthPosition, "earth");
 
-        Vector2 icePosition = new Vector2(sunPosition.x + ICE_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, sunPosition.y);
-        float iceRadius = ICE_RADIUS_PIXELS / PIXELS_TO_METERS;
-        icePlanet = createCelestialBody(world, BodyDef.BodyType.DynamicBody, iceRadius, ICE_ORBIT_SPEED, icePosition, "ice", null, FRAME_DURATION, 100, 100);
+        Vector2 saturnPosition = new Vector2(sunPosition.x + SATURN_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, sunPosition.y);
+        float saturnRadius = SATURN_RADIUS_PIXELS / PIXELS_TO_METERS;
+        saturn = createCelestialBody(BodyDef.BodyType.DynamicBody, saturnRadius, SATURN_ORBIT_SPEED, saturnPosition, "saturn");
 
         Vector2 moonPosition = new Vector2(earthPosition.x + MOON_DISTANCE_TO_EARTH_PIXELS / PIXELS_TO_METERS, earthPosition.y);
         float moonRadius = MOON_RADIUS_PIXELS / PIXELS_TO_METERS;
-        moon = createCelestialBody(world, BodyDef.BodyType.DynamicBody, moonRadius, MOON_ORBIT_SPEED, moonPosition, "baren", null, FRAME_DURATION, 100, 100);
+        moon = createCelestialBody(BodyDef.BodyType.DynamicBody, moonRadius, MOON_ORBIT_SPEED, moonPosition, "moon");
     }
 
-    private Animation<TextureRegion> createAnimationFromAtlas(TextureAtlas atlas, String regionName,
-                                                              float frameDuration, int tileWidht, int tileHeight) {
+    private Animation<TextureRegion> createAnimationFromAssetManager(String regionName) {
+        Texture texture = assetManager.get(String.format("sprites/anim/%s.png", regionName), Texture.class);
 
-        TextureRegion[][] tmpFrames = atlas.findRegion(regionName).split(tileWidht, tileHeight);
+        // Assuming each frame is of equal size, calculate the width and height of each frame
+        int frameWidth = texture.getWidth() / ANIMATION_NUM_COLS;
+        int frameHeight = texture.getHeight() / ANIMATION_NUM_ROWS;
+
+        TextureRegion[][] tmpFrames = TextureRegion.split(texture, frameWidth, frameHeight);
         TextureRegion[] animationFrames = new TextureRegion[ANIMATION_NUM_ROWS * ANIMATION_NUM_COLS];
 
         int index = 0;
@@ -124,29 +130,20 @@ public class SolarSystemScreen implements Screen {
             }
         }
 
-        return new Animation<>(frameDuration, animationFrames);
+        return new Animation<>(FRAME_DURATION, animationFrames);
     }
 
+    private CelestialBody createCelestialBody(BodyDef.BodyType bodyType, float radius, float orbitSpeed,
+                                              Vector2 position, String regionName) {
 
-    private CelestialBody createCelestialBody(World world, BodyDef.BodyType bodyType, float radius, float orbitSpeed,
-                                              Vector2 position, String regionName, String animationPrefix,
-                                              float frameDuration, int tileWidth, int tileHeight) {
-        TextureRegion staticRegion = null;
-        Animation<TextureRegion> animation = (animationPrefix != null && !atlas.findRegions(animationPrefix).isEmpty())
-                ? createAnimationFromAtlas(atlas, animationPrefix, frameDuration, tileWidth, tileHeight)
-                : null;
-
-        if (animation == null && regionName != null) {
-            staticRegion = atlas.findRegion(regionName);
-        }
-
-        return new CelestialBody(world, bodyType, radius, orbitSpeed, position, 1f, spriteBatch, staticRegion, animation);
+        Animation<TextureRegion> animation = createAnimationFromAssetManager(regionName);
+        return new CelestialBody(world, bodyType, radius, orbitSpeed, position, spriteBatch, animation);
     }
 
     public void manageOrbits() {
         adjustOrbitVelocity(moon, earth, MOON_DISTANCE_TO_EARTH_PIXELS / PIXELS_TO_METERS);
         adjustOrbitVelocity(earth, sun, EARTH_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS);
-        adjustOrbitVelocity(icePlanet, sun, ICE_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS);
+        adjustOrbitVelocity(saturn, sun, SATURN_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS);
     }
 
     public void adjustOrbitVelocity(CelestialBody orbitingBody, CelestialBody centralBody, float maxOrbitDistance) {
@@ -179,6 +176,8 @@ public class SolarSystemScreen implements Screen {
         // Calculate the visible area taking into account zoom and ensuring the background covers the entire screen.
         float visibleWidth = worldViewport.getWorldWidth() * worldCamera.zoom;
         float visibleHeight = worldViewport.getWorldHeight() * worldCamera.zoom;
+
+        Texture backgroundTexture = assetManager.get("sprites/background.png", Texture.class);
 
         // Calculate the offset based on the camera's position to make the background appear stationary.
         // This adjustment makes the background's starting point align with the world's coordinate system.
@@ -227,7 +226,7 @@ public class SolarSystemScreen implements Screen {
 
     private void drawIce() {
         //drawBody(icePlanet, ICE_RADIUS_PIXELS);
-        icePlanet.draw(stateTime);
+        saturn.draw(stateTime);
     }
 
     private void drawMoon() {

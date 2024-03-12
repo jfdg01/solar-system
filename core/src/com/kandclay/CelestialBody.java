@@ -12,22 +12,18 @@ import com.badlogic.gdx.math.MathUtils;
 
 public class CelestialBody {
     public Body body;
-    private Texture texture;
-    private TextureRegion region;
     private float radius;
     private float orbitSpeed;
     private Animation<TextureRegion> animation;
-    private Texture animationTexture;
     private Batch spriteBatch;
 
     public CelestialBody(World world, BodyDef.BodyType bodyType, float radius, float orbitSpeed, Vector2 position,
-                         float density, Batch spriteBatch, TextureRegion region, Animation<TextureRegion> animation) {
+                         Batch spriteBatch, Animation<TextureRegion> animation) {
         this.radius = radius;
         this.orbitSpeed = orbitSpeed;
         this.spriteBatch = spriteBatch;
-        this.region = region;
         this.animation = animation;
-        createBody(world, bodyType, radius, position, density);
+        createBody(world, bodyType, radius, position, 1f);
     }
 
 
@@ -50,12 +46,8 @@ public class CelestialBody {
     }
 
     public void draw(float stateTime) {
-        TextureRegion currentRegion = this.region; // Use the default region if no animation is available.
 
-        // Update the region based on the animation frame if an animation is available.
-        if (this.animation != null) {
-            currentRegion = this.animation.getKeyFrame(stateTime, true);
-        }
+        TextureRegion currentRegion = this.animation.getKeyFrame(stateTime, true);
 
         // Calculate the drawing parameters.
         Vector2 position = this.body.getPosition();
@@ -69,9 +61,6 @@ public class CelestialBody {
                 currentRegion.getRegionWidth(), currentRegion.getRegionHeight(), scale, scale, rotation);
     }
 
-    public TextureRegion getRegion() {
-        return region;
-    }
 
     public float getOrbitSpeed() {
         return orbitSpeed;
@@ -83,18 +72,6 @@ public class CelestialBody {
 
     public void setBody(Body body) {
         this.body = body;
-    }
-
-    public Texture getTexture() {
-        return texture;
-    }
-
-    public void setTexture(Texture texture) {
-        this.texture = texture;
-    }
-
-    public void setRegion(TextureRegion region) {
-        this.region = region;
     }
 
     public float getRadius() {
@@ -117,12 +94,5 @@ public class CelestialBody {
         this.animation = animation;
     }
 
-    public Texture getAnimationTexture() {
-        return animationTexture;
-    }
-
-    public void setAnimationTexture(Texture sunAnimTexture) {
-        this.animationTexture = sunAnimTexture;
-    }
 }
 
