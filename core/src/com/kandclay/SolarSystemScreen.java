@@ -6,6 +6,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
@@ -27,12 +28,17 @@ public class SolarSystemScreen implements Screen {
     private OrthographicCamera worldCamera;
     private Batch spriteBatch;
     private Texture backgroundTexture;
+    private Animation<TextureRegion> animation;
+    private float stateTime = 0;
+    private Texture sunAnimTexture;
 
     // Planetary bodies
     public class CelestialBody {
         public Body body;
         private Texture texture;
         private TextureRegion region;
+        private Animation<TextureRegion> animation;
+        private boolean isAnimated = false;
         private float radius;
         private float orbitSpeed;
 
@@ -60,16 +66,6 @@ public class SolarSystemScreen implements Screen {
 
             body.createFixture(fixtureDef);
             shape.dispose();
-        }
-
-        public void draw() {
-            Vector2 bodyPos = body.getPosition();
-            float rotation = MathUtils.radiansToDegrees * body.getAngle();
-            float scale = (float) (radius * 2) / region.getRegionWidth();
-            float screenX = bodyPos.x * PIXELS_TO_METERS - region.getRegionWidth() / 2f;
-            float screenY = bodyPos.y * PIXELS_TO_METERS - region.getRegionHeight() / 2f;
-
-            spriteBatch.draw(region, screenX, screenY, region.getRegionWidth() / 2f, region.getRegionHeight() / 2f, region.getRegionWidth(), region.getRegionHeight(), scale, scale, rotation);
         }
     }
 
@@ -124,9 +120,28 @@ public class SolarSystemScreen implements Screen {
         Gdx.input.setInputProcessor(multiplexer);
     }
 
+    private void createSunAnimation() {
+        // Load the animation texture
+        sunAnimTexture = new Texture(Gdx.files.internal("sprites/sunAnim.png"));
+
+        int frameWidth = 200;
+        int frameHeight = 200;
+        TextureRegion[][] tmpFrames = TextureRegion.split(sunAnimTexture, frameWidth, frameHeight);
+
+        // Create an array to hold the frames for the animation
+        TextureRegion[] sunFrames = new TextureRegion[tmpFrames.length];
+        // The frames are all in the first row, so iterate over the columns of the first row
+
+
+        // Create the Animation object
+        animation = new Animation<>(0.1f, sunFrames); // Change 0.1f to your desired frame duration
+    }
+
     private void createSolarSystem() {
+
         Vector2 sunPosition = new Vector2(Gdx.graphics.getWidth() / 2f / PIXELS_TO_METERS, Gdx.graphics.getHeight() / 2f / PIXELS_TO_METERS);
         sun = new CelestialBody("sprites/Lava.png", BodyDef.BodyType.StaticBody, SUN_RADIUS_PIXELS / PIXELS_TO_METERS, 0, sunPosition, 1f);
+        createSunAnimation();
 
         Vector2 earthPosition = sun.body.getPosition().cpy().add(EARTH_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, 0);
         earth = new CelestialBody("sprites/Terran.png", BodyDef.BodyType.DynamicBody, EARTH_RADIUS_PIXELS / PIXELS_TO_METERS, EARTH_ORBIT_SPEED, earthPosition, 1f);
@@ -171,10 +186,17 @@ public class SolarSystemScreen implements Screen {
     }
 
     private void drawBackground() {
-        float width = worldViewport.getWorldWidth();
-        float height = worldViewport.getWorldHeight();
-        for (int x = -(int) width; x < width; x += backgroundTexture.getWidth()) {
-            for (int y = -(int) height; y < height; y += backgroundTexture.getHeight()) {
+        // Calculate the visible area taking into account zoom and ensuring the background covers the entire screen.
+        float visibleWidth = worldViewport.getWorldWidth() * worldCamera.zoom;
+        float visibleHeight = worldViewport.getWorldHeight() * worldCamera.zoom;
+
+        // Calculate the offset based on the camera's position to make the background appear stationary.
+        // This adjustment makes the background's starting point align with the world's coordinate system.
+        float startX = (worldCamera.position.x - visibleWidth / 2) - (worldCamera.position.x % backgroundTexture.getWidth());
+        float startY = (worldCamera.position.y - visibleHeight / 2) - (worldCamera.position.y % backgroundTexture.getHeight());
+
+        for (float x = startX; x < startX + visibleWidth; x += backgroundTexture.getWidth()) {
+            for (float y = startY; y < startY + visibleHeight; y += backgroundTexture.getHeight()) {
                 spriteBatch.draw(backgroundTexture, x, y);
             }
         }
@@ -182,6 +204,7 @@ public class SolarSystemScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        stateTime += delta;
         manageOrbits();
         clearScreen();
         stepWorld(delta);
@@ -199,15 +222,19 @@ public class SolarSystemScreen implements Screen {
     }
 
     private void stepWorld(float delta) {
-        float PHYSICS_STEP_PER_SECOND = 60;
-        world.step(1f / PHYSICS_STEP_PER_SECOND, PHYSICS_VELOCITY_ITERATIONS, PHYSICS_POSITION_ITERATIONS);
+        world.step(1f / PHYSICS_TIME_STEP, PHYSICS_VELOCITY_ITERATIONS, PHYSICS_POSITION_ITERATIONS);
     }
 
     private void drawSun() {
         Vector2 bodyPos = sun.body.getPosition();
         float rotation = MathUtils.radiansToDegrees * sun.body.getAngle();
-        drawCelestialBody(sun.region, bodyPos, rotation, SUN_RADIUS_PIXELS * 2);
+
+        // Get the current frame of the animation
+        TextureRegion currentFrame = animation.getKeyFrame(stateTime, true); // true for looping
+
+        drawCelestialBody(currentFrame, bodyPos, rotation, SUN_RADIUS_PIXELS * 2);
     }
+
 
     private void drawEarth() {
         Vector2 bodyPos = earth.body.getPosition();
@@ -259,6 +286,7 @@ public class SolarSystemScreen implements Screen {
         icePlanet.texture.dispose();
         moon.texture.dispose();
         backgroundTexture.dispose();
+        sunAnimTexture.dispose();
     }
 
     @Override
