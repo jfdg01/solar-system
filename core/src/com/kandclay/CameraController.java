@@ -7,7 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import static com.kandclay.Constants.LERP_FACTOR;
+import static com.kandclay.Constants.*;
 
 public class CameraController extends InputAdapter {
     private OrthographicCamera camera;
@@ -36,15 +36,19 @@ public class CameraController extends InputAdapter {
         switch (keycode) {
             case Keys.W:
                 upPressed = true;
+                setTargetBody(null);
                 break;
             case Keys.A:
                 leftPressed = true;
+                setTargetBody(null);
                 break;
             case Keys.S:
                 downPressed = true;
+                setTargetBody(null);
                 break;
             case Keys.D:
                 rightPressed = true;
+                setTargetBody(null);
                 break;
             case Keys.H:
                 camera.zoom *= zoomInFactor;
@@ -72,19 +76,19 @@ public class CameraController extends InputAdapter {
                 rightPressed = false;
                 break;
             case Keys.NUM_1:
-                setTargetBody(null); // Free mode
+                setTargetBody(solarSystemScreen.getCelestialBodies().get(SUN)); // Track Sun
                 break;
             case Keys.NUM_2:
-                setTargetBody(solarSystemScreen.getEarth()); // Track Earth
+                setTargetBody(solarSystemScreen.getCelestialBodies().get(EARTH)); // Track Earth
                 break;
             case Keys.NUM_3:
-                setTargetBody(solarSystemScreen.getSaturn()); // Track Saturn
+                setTargetBody(solarSystemScreen.getCelestialBodies().get(MOON)); // Track Moon
                 break;
             case Keys.NUM_4:
-                setTargetBody(solarSystemScreen.getSun()); // Track Sun
+                setTargetBody(solarSystemScreen.getCelestialBodies().get(SATURN)); // Track Saturn
                 break;
             case Keys.NUM_5:
-                setTargetBody(solarSystemScreen.getMoon()); // Track Moon
+                setTargetBody(null); // Free mode
                 break;
         }
         return false;

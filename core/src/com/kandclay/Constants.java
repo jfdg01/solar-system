@@ -34,4 +34,9 @@ public class Constants {
     static final float MOON_ORBIT_SPEED = 3f;
     static final float MOON_RADIUS_PIXELS = 6;
     static final float MOON_DISTANCE_TO_EARTH_PIXELS = 150;
+
+    static final int SUN = 0;
+    static final int EARTH = 1;
+    static final int SATURN = 2;
+    static final int MOON = 3;
 }
