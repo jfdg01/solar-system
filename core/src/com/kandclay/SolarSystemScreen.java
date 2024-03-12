@@ -9,22 +9,19 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
-import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.InputAdapter;
 
 import static com.kandclay.Constants.*;
 
 public class SolarSystemScreen implements Screen {
     private final SolarSystemGame game;
     private final AssetManager assetManager;
-    private TextureAtlas atlas;
+    private CameraController cameraController;
     private World world;
     private Stage worldStage;
     private ExtendViewport worldViewport;
@@ -32,27 +29,25 @@ public class SolarSystemScreen implements Screen {
     private Batch spriteBatch;
     private float stateTime = 0;
     private CelestialBody sun, earth, saturn, moon;
-    String backgroundPath;
 
+    String backgroundPath;
 
     public SolarSystemScreen(SolarSystemGame game) {
         this.game = game;
         this.assetManager = new AssetManager();
+
         loadAssets();
     }
 
     private void loadAssets() {
-        backgroundPath = "sprites/backgroundSimple.png";
+        backgroundPath = "sprites/static/backgroundSimple.png";
 
-        assetManager.load("sprites/atlas/solarSystemAssets.atlas", TextureAtlas.class);
         assetManager.load(backgroundPath, Texture.class);
         assetManager.load("sprites/anim/earth.png", Texture.class);
         assetManager.load("sprites/anim/saturn.png", Texture.class);
         assetManager.load("sprites/anim/moon.png", Texture.class);
         assetManager.load("sprites/anim/sun.png", Texture.class);
         assetManager.finishLoading();
-
-        atlas = assetManager.get("sprites/atlas/solarSystemAssets.atlas", TextureAtlas.class);
     }
 
     @Override
@@ -72,6 +67,7 @@ public class SolarSystemScreen implements Screen {
         worldCamera = new OrthographicCamera();
         worldViewport = new ExtendViewport(VIEWPORT_WIDTH_PIXELS_INIT, VIEWPORT_HEIGHT_PIXELS_INIT, worldCamera);
         worldViewport.setScaling(Scaling.contain);
+        cameraController = new CameraController(worldCamera, worldViewport, CAMERA_MOVE_SPEED, ZOOM_IN_FACTOR, ZOOM_OUT_FACTOR, this);
     }
 
     private void initializeStage() {
@@ -81,22 +77,11 @@ public class SolarSystemScreen implements Screen {
 
     private void setupInputProcessors() {
         InputMultiplexer multiplexer = new InputMultiplexer();
-        multiplexer.addProcessor(new InputAdapter() {
-            @Override
-            public boolean keyDown(int keycode) {
-                if (keycode == Keys.H) {
-                    zoomIn();
-                    return true;
-                } else if (keycode == Keys.J) {
-                    zoomOut();
-                    return true;
-                }
-                return false;
-            }
-        });
-        multiplexer.addProcessor(worldStage);
+        multiplexer.addProcessor(cameraController);
+        // Add other input processors as needed
         Gdx.input.setInputProcessor(multiplexer);
     }
+
 
     private void createSolarSystem() {
         Vector2 sunPosition = new Vector2(Gdx.graphics.getWidth() / 2f / PIXELS_TO_METERS, Gdx.graphics.getHeight() / 2f / PIXELS_TO_METERS);
@@ -171,7 +156,7 @@ public class SolarSystemScreen implements Screen {
     private void drawSolarSystem() {
         drawSun();
         drawEarth();
-        drawIce();
+        drawSaturn();
         drawMoon();
     }
 
@@ -184,21 +169,17 @@ public class SolarSystemScreen implements Screen {
         float visibleWidth = worldViewport.getWorldWidth() * worldCamera.zoom;
         float visibleHeight = worldViewport.getWorldHeight() * worldCamera.zoom;
 
-        // Center position of the background relative to the world coordinates
-        float centerX = worldCamera.position.x;
-        float centerY = worldCamera.position.y;
-
         // Calculate the offset to align the background center with the camera center
-        float startX = centerX - (backgroundWidth / 2);
-        float startY = centerY - (backgroundHeight / 2);
+        float startX = worldCamera.position.x - (backgroundWidth / 2);
+        float startY = worldCamera.position.y - (backgroundHeight / 2);
 
         // Calculate the required number of tiles to cover the visible area, including extra for zooming out
         int tilesX = (int) Math.ceil(visibleWidth / backgroundWidth) + 2; // Adding 2 for padding
         int tilesY = (int) Math.ceil(visibleHeight / backgroundHeight) + 2; // Adding 2 for padding
 
         // Adjust for initial layer to be centered
-        startX -= (tilesX / 2) * backgroundWidth;
-        startY -= (tilesY / 2) * backgroundHeight;
+        startX -= (tilesX / 2f) * backgroundWidth;
+        startY -= (tilesY / 2f) * backgroundHeight;
 
         // Draw the background tiles
         for (int x = 0; x < tilesX; x++) {
@@ -222,6 +203,11 @@ public class SolarSystemScreen implements Screen {
         spriteBatch.end();
 
         updateWorldStage(delta);
+        update(delta);
+    }
+
+    public void update(float deltaTime) {
+        cameraController.update(deltaTime);
     }
 
     private void clearScreen() {
@@ -240,7 +226,7 @@ public class SolarSystemScreen implements Screen {
         earth.draw(stateTime);
     }
 
-    private void drawIce() {
+    private void drawSaturn() {
         saturn.draw(stateTime);
     }
 
@@ -271,7 +257,6 @@ public class SolarSystemScreen implements Screen {
     public void dispose() {
         worldStage.dispose();
         assetManager.dispose();
-        atlas.dispose();
     }
 
     @Override
@@ -284,5 +269,21 @@ public class SolarSystemScreen implements Screen {
 
     @Override
     public void hide() {
+    }
+
+    public CelestialBody getSun() {
+        return sun;
+    }
+
+    public CelestialBody getEarth() {
+        return earth;
+    }
+
+    public CelestialBody getSaturn() {
+        return saturn;
+    }
+
+    public CelestialBody getMoon() {
+        return moon;
     }
 }
