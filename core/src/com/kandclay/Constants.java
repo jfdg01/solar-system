@@ -1,5 +1,9 @@
 package com.kandclay;
 
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+
 public class Constants {
     public static final float ZOOM_IN_FACTOR = 0.9f;
     public static final float ZOOM_OUT_FACTOR = 1.1f;
@@ -25,6 +29,6 @@ public class Constants {
     static final float MOON_ORBIT_SPEED = 3f;
     static final float MOON_RADIUS_PIXELS = 5;
     static final float MOON_DISTANCE_TO_EARTH_PIXELS = 50;
-
+    static final Animation<TextureRegion> NO_ANIMATION = null;
 
 }
