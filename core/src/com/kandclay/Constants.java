@@ -14,7 +14,14 @@ public class Constants {
     public static final float VIEWPORT_WIDTH_PIXELS_INIT = 400;
     public static final float VIEWPORT_HEIGHT_PIXELS_INIT = 300;
     public static final float NO_SCALING = -1;
-    public static final float SUN_RADIUS_PIXELS = 32;
+
+    // Animation
+    public static final int ANIMATION_NUM_ROWS = 16;
+    public static final int ANIMATION_NUM_COLS = 15;
+    public static final float FRAME_DURATION = 0.1f;
+
+    // Sun
+    public static final float SUN_RADIUS_PIXELS = 100;
 
     // Earth
     public static final float EARTH_ORBIT_SPEED = 2;
@@ -29,6 +36,4 @@ public class Constants {
     static final float MOON_ORBIT_SPEED = 3f;
     static final float MOON_RADIUS_PIXELS = 5;
     static final float MOON_DISTANCE_TO_EARTH_PIXELS = 50;
-    static final Animation<TextureRegion> NO_ANIMATION = null;
-
 }

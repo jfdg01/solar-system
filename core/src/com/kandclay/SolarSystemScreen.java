@@ -9,8 +9,8 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -24,6 +24,7 @@ import static com.kandclay.Constants.*;
 public class SolarSystemScreen implements Screen {
     private final SolarSystemGame game;
     private AssetManager assetManager;
+    private TextureAtlas atlas;
     private World world;
     private Stage worldStage;
     private ExtendViewport worldViewport;
@@ -41,13 +42,10 @@ public class SolarSystemScreen implements Screen {
     }
 
     private void loadAssets() {
-        assetManager.load("sprites/background.png", Texture.class);
-        assetManager.load("sprites/baren.png", Texture.class);
-        assetManager.load("sprites/sunAnim.png", Texture.class);
-        assetManager.load("sprites/earthAnim.png", Texture.class);
-        assetManager.load("sprites/ice.png", Texture.class);
+        assetManager.load("sprites/atlas/solarSystemAssets.atlas", TextureAtlas.class);
+        assetManager.finishLoading();
 
-        assetManager.finishLoading(); // Blocks until all assets are loaded. Consider using update() for asynchronous loading if necessary.
+        atlas = assetManager.get("sprites/atlas/solarSystemAssets.atlas", TextureAtlas.class);
     }
 
     @Override
@@ -95,49 +93,54 @@ public class SolarSystemScreen implements Screen {
         Gdx.input.setInputProcessor(multiplexer);
     }
 
-    private Animation<TextureRegion> createAnimation(Texture texture, int frameWidth, int frameHeight, float frameDuration) {
-        TextureRegion[][] tmpFrames = TextureRegion.split(texture, frameWidth, frameHeight);
-        int rows = tmpFrames.length;
-        int columns = tmpFrames[0].length;
-        TextureRegion[] frames = new TextureRegion[rows * columns];
+    private void createSolarSystem() {
+        Vector2 sunPosition = new Vector2(Gdx.graphics.getWidth() / 2f / PIXELS_TO_METERS, Gdx.graphics.getHeight() / 2f / PIXELS_TO_METERS);
+        float sunRadius = SUN_RADIUS_PIXELS / PIXELS_TO_METERS;
+        sun = createCelestialBody(world, BodyDef.BodyType.StaticBody, sunRadius, 0, sunPosition, "sun", "sunAnim", FRAME_DURATION, 200, 200);
+
+        Vector2 earthPosition = new Vector2(sunPosition.x + EARTH_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, sunPosition.y);
+        float earthRadius = EARTH_RADIUS_PIXELS / PIXELS_TO_METERS;
+        earth = createCelestialBody(world, BodyDef.BodyType.DynamicBody, earthRadius, EARTH_ORBIT_SPEED, earthPosition, "terran", "earthAnim", FRAME_DURATION, 100, 100);
+
+        Vector2 icePosition = new Vector2(sunPosition.x + ICE_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, sunPosition.y);
+        float iceRadius = ICE_RADIUS_PIXELS / PIXELS_TO_METERS;
+        icePlanet = createCelestialBody(world, BodyDef.BodyType.DynamicBody, iceRadius, ICE_ORBIT_SPEED, icePosition, "ice", null, FRAME_DURATION, 100, 100);
+
+        Vector2 moonPosition = new Vector2(earthPosition.x + MOON_DISTANCE_TO_EARTH_PIXELS / PIXELS_TO_METERS, earthPosition.y);
+        float moonRadius = MOON_RADIUS_PIXELS / PIXELS_TO_METERS;
+        moon = createCelestialBody(world, BodyDef.BodyType.DynamicBody, moonRadius, MOON_ORBIT_SPEED, moonPosition, "baren", null, FRAME_DURATION, 100, 100);
+    }
+
+    private Animation<TextureRegion> createAnimationFromAtlas(TextureAtlas atlas, String regionName,
+                                                              float frameDuration, int tileWidht, int tileHeight) {
+
+        TextureRegion[][] tmpFrames = atlas.findRegion(regionName).split(tileWidht, tileHeight);
+        TextureRegion[] animationFrames = new TextureRegion[ANIMATION_NUM_ROWS * ANIMATION_NUM_COLS];
 
         int index = 0;
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < columns; j++) {
-                frames[index++] = tmpFrames[i][j];
+        for (int i = 0; i < ANIMATION_NUM_ROWS; i++) {
+            for (int j = 0; j < ANIMATION_NUM_COLS; j++) {
+                animationFrames[index++] = tmpFrames[i][j];
             }
         }
 
-        return new Animation<>(frameDuration, frames);
+        return new Animation<>(frameDuration, animationFrames);
     }
 
-    private void createSolarSystem() {
-        Vector2 sunPosition = new Vector2(Gdx.graphics.getWidth() / 2f / PIXELS_TO_METERS, Gdx.graphics.getHeight() / 2f / PIXELS_TO_METERS);
-        sun = createCelestialBody(world, BodyDef.BodyType.StaticBody, SUN_RADIUS_PIXELS / PIXELS_TO_METERS, 0, sunPosition, "sprites/baren.png", "sprites/sunAnim.png", 200, 200, 0.1f, true);
-
-        Vector2 earthPosition = sun.getBody().getPosition().cpy().add(EARTH_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, 0);
-        earth = createCelestialBody(world, BodyDef.BodyType.DynamicBody, EARTH_RADIUS_PIXELS / PIXELS_TO_METERS, EARTH_ORBIT_SPEED, earthPosition, "sprites/baren.png", "sprites/earthAnim.png", 100, 100, 0.1f, true);
-
-        Vector2 icePlanetPosition = sun.getBody().getPosition().cpy().add(ICE_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, 0);
-        icePlanet = createCelestialBody(world, BodyDef.BodyType.DynamicBody, ICE_RADIUS_PIXELS / PIXELS_TO_METERS, ICE_ORBIT_SPEED, icePlanetPosition, "sprites/i" +
-                "ce.png", null, 0, 0, 0, false);
-
-        Vector2 moonPosition = earth.getBody().getPosition().cpy().add(MOON_DISTANCE_TO_EARTH_PIXELS / PIXELS_TO_METERS, 0);
-        moon = createCelestialBody(world, BodyDef.BodyType.DynamicBody, MOON_RADIUS_PIXELS / PIXELS_TO_METERS, MOON_ORBIT_SPEED, moonPosition, "sprites/baren.png", null, 0, 0, 0, false);
-    }
 
     private CelestialBody createCelestialBody(World world, BodyDef.BodyType bodyType, float radius, float orbitSpeed,
-                                              Vector2 position, String texturePath, String animationTexturePath,
-                                              int frameWidth, int frameHeight, float frameDuration, boolean isAnimated) {
-        Texture texture = assetManager.get(texturePath, Texture.class);
-        TextureRegion region = new TextureRegion(texture);
-        CelestialBody body = new CelestialBody(world, bodyType, radius, orbitSpeed, position, 1f, spriteBatch, region);
-        if (isAnimated && animationTexturePath != null) {
-            Texture animationTexture = assetManager.get(animationTexturePath, Texture.class);
-            body.setAnimationTexture(animationTexture);
-            body.setAnimation(createAnimation(animationTexture, frameWidth, frameHeight, frameDuration));
+                                              Vector2 position, String regionName, String animationPrefix,
+                                              float frameDuration, int tileWidth, int tileHeight) {
+        TextureRegion staticRegion = null;
+        Animation<TextureRegion> animation = (animationPrefix != null && !atlas.findRegions(animationPrefix).isEmpty())
+                ? createAnimationFromAtlas(atlas, animationPrefix, frameDuration, tileWidth, tileHeight)
+                : null;
+
+        if (animation == null && regionName != null) {
+            staticRegion = atlas.findRegion(regionName);
         }
-        return body;
+
+        return new CelestialBody(world, bodyType, radius, orbitSpeed, position, 1f, spriteBatch, staticRegion, animation);
     }
 
     public void manageOrbits() {
@@ -255,6 +258,7 @@ public class SolarSystemScreen implements Screen {
     public void dispose() {
         worldStage.dispose();
         assetManager.dispose();
+        atlas.dispose();
     }
 
     @Override
