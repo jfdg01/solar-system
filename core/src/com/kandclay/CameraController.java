@@ -4,7 +4,6 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -55,9 +54,11 @@ public class CameraController extends InputAdapter {
                 setTargetBody(null);
                 break;
             case Keys.H:
+            case Keys.UP:
                 camera.zoom *= zoomInFactor;
                 break;
             case Keys.J:
+            case Keys.DOWN:
                 camera.zoom *= zoomOutFactor;
                 break;
         }
@@ -126,8 +127,8 @@ public class CameraController extends InputAdapter {
         if (targetBody != null) {
             Vector2 targetWorldPos = targetBody.getBody().getPosition();
 
-            float targetX = targetWorldPos.x * Constants.PIXELS_TO_METERS;
-            float targetY = targetWorldPos.y * Constants.PIXELS_TO_METERS;
+            float targetX = targetWorldPos.x * PIXELS_TO_METERS;
+            float targetY = targetWorldPos.y * PIXELS_TO_METERS;
 
             camera.position.x += (targetX - camera.position.x) * LERP_FACTOR;
             camera.position.y += (targetY - camera.position.y) * LERP_FACTOR;

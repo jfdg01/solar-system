@@ -7,25 +7,61 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.math.MathUtils;
 
+import static com.kandclay.Constants.*;
+
 public class CelestialBody {
+
+    public String name;
     public Body body;
     private float radius;
     private float orbitSpeed;
     private Animation<TextureRegion> animation;
     private final Batch spriteBatch;
     private final float distanceToAnchorBody;
+    private final CelestialBody orbitedBody;
 
 
-    public CelestialBody(World world, BodyDef.BodyType bodyType, float radius, float orbitSpeed, Vector2 position,
-                         Batch spriteBatch, Animation<TextureRegion> animation, float distanceToAnchorBody) {
+    public CelestialBody(World world, String name, BodyDef.BodyType bodyType, float radius, float orbitSpeed, Vector2 position,
+                         Batch spriteBatch, Animation<TextureRegion> animation, CelestialBody orbitedBody, float distanceToAnchorBody) {
+        this.name = name;
         this.radius = radius;
         this.orbitSpeed = orbitSpeed;
         this.spriteBatch = spriteBatch;
         this.animation = animation;
         this.distanceToAnchorBody = distanceToAnchorBody;
+        this.orbitedBody = orbitedBody;
         createBody(world, bodyType, radius, position);
     }
 
+    public void updateOrbit() {
+        if (this.orbitedBody != null) { // Ensure there is a central body to orbit around
+            float maxOrbitDistance = this.distanceToAnchorBody * 1.1f;
+            float minOrbitDistance = this.distanceToAnchorBody * 0.9f;
+            adjustOrbitVelocity(this.orbitedBody, maxOrbitDistance, minOrbitDistance);
+        }
+    }
+
+    public void adjustOrbitVelocity(CelestialBody centralBody, float maxOrbitDistance, float minOrbitDistance) {
+        if (centralBody == null) {
+            return;
+        }
+
+        Vector2 centerToBody = this.body.getPosition().sub(centralBody.body.getPosition());
+        float currentDistance = centerToBody.len();
+
+        Vector2 tangentVelocity = new Vector2(-centerToBody.y, centerToBody.x).nor().scl(this.getOrbitSpeed());
+
+        if (currentDistance > maxOrbitDistance) {
+            Vector2 correctionVector = centerToBody.scl(-1).nor().scl(this.getOrbitSpeed() * 0.5f);
+            tangentVelocity.add(correctionVector);
+        } else if (currentDistance < minOrbitDistance) {
+            Vector2 correctionVector = centerToBody.nor().scl(this.getOrbitSpeed() * 0.5f);
+            tangentVelocity.add(correctionVector);
+        }
+
+        Vector2 adjustedVelocity = tangentVelocity.add(centralBody.body.getLinearVelocity());
+        this.body.setLinearVelocity(adjustedVelocity.x, adjustedVelocity.y);
+    }
 
     private void createBody(World world, BodyDef.BodyType bodyType, float radius, Vector2 position) {
         BodyDef bodyDef = new BodyDef();
@@ -98,5 +134,13 @@ public class CelestialBody {
         return distanceToAnchorBody;
     }
 
+    @Override
+    public String toString() {
+        return name + "{" +
+                "radius=" + radius +
+                ", orbitSpeed=" + orbitSpeed +
+                ", distanceToAnchorBody=" + distanceToAnchorBody +
+                '}';
+    }
 }
 
