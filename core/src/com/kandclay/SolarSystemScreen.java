@@ -12,7 +12,9 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
@@ -20,6 +22,8 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import static com.kandclay.Constants.*;
 
 public class SolarSystemScreen implements Screen {
+
+    Box2DDebugRenderer debugRenderer = new Box2DDebugRenderer();
     private final SolarSystemGame game;
     private final AssetManager assetManager;
     private CameraController cameraController;
@@ -94,29 +98,29 @@ public class SolarSystemScreen implements Screen {
 
         CelestialBody sun = createSun();
 
-        CelestialBody mercury = createPlanet(MERCURY_DISTANCE_TO_SUN_PIXELS, MERCURY_RADIUS_PIXELS, MERCURY_ORBIT_SPEED, "mercury", sun);
+        CelestialBody mercury = createPlanet(SUN, MERCURY_DISTANCE_TO_SUN_PIXELS, MERCURY_RADIUS_PIXELS, MERCURY_ORBIT_SPEED, "mercury", sun);
         MERCURY = celestialBodies.indexOf(mercury, true);
-        CelestialBody venus = createPlanet(VENUS_DISTANCE_TO_SUN_PIXELS, VENUS_RADIUS_PIXELS, VENUS_ORBIT_SPEED, "venus", sun);
+        CelestialBody venus = createPlanet(SUN, VENUS_DISTANCE_TO_SUN_PIXELS, VENUS_RADIUS_PIXELS, VENUS_ORBIT_SPEED, "venus", sun);
         VENUS = celestialBodies.indexOf(venus, true);
-        CelestialBody earth = createPlanet(EARTH_DISTANCE_TO_SUN_PIXELS, EARTH_RADIUS_PIXELS, EARTH_ORBIT_SPEED, "earth", sun);
+        CelestialBody earth = createPlanet(SUN, EARTH_DISTANCE_TO_SUN_PIXELS, EARTH_RADIUS_PIXELS, EARTH_ORBIT_SPEED, "earth", sun);
         EARTH = celestialBodies.indexOf(earth, true);
-        CelestialBody moon = createPlanet(MOON_DISTANCE_TO_EARTH_PIXELS, MOON_RADIUS_PIXELS, MOON_ORBIT_SPEED, "moon", earth);
+        CelestialBody moon = createPlanet(EARTH, MOON_DISTANCE_TO_EARTH_PIXELS, MOON_RADIUS_PIXELS, MOON_ORBIT_SPEED, "moon", earth);
         MOON = celestialBodies.indexOf(moon, true);
-        CelestialBody mars = createPlanet(MARS_DISTANCE_TO_SUN_PIXELS, MARS_RADIUS_PIXELS, MARS_ORBIT_SPEED, "mars", sun);
+        CelestialBody mars = createPlanet(SUN, MARS_DISTANCE_TO_SUN_PIXELS, MARS_RADIUS_PIXELS, MARS_ORBIT_SPEED, "mars", sun);
         MARS = celestialBodies.indexOf(mars, true);
-        CelestialBody jupiter = createPlanet(JUPITER_DISTANCE_TO_SUN_PIXELS, JUPITER_RADIUS_PIXELS, JUPITER_ORBIT_SPEED, "jupiter", sun);
+        CelestialBody jupiter = createPlanet(SUN, JUPITER_DISTANCE_TO_SUN_PIXELS, JUPITER_RADIUS_PIXELS, JUPITER_ORBIT_SPEED, "jupiter", sun);
         JUPITER = celestialBodies.indexOf(jupiter, true);
-        CelestialBody saturn = createPlanet(SATURN_DISTANCE_TO_SUN_PIXELS, SATURN_RADIUS_PIXELS, SATURN_ORBIT_SPEED, "saturn", sun);
+        CelestialBody saturn = createPlanet(SUN, SATURN_DISTANCE_TO_SUN_PIXELS, SATURN_RADIUS_PIXELS, SATURN_ORBIT_SPEED, "saturn", sun);
         SATURN = celestialBodies.indexOf(saturn, true);
-        CelestialBody uranus = createPlanet(URANUS_DISTANCE_TO_SUN_PIXELS, URANUS_RADIUS_PIXELS, URANUS_ORBIT_SPEED, "uranus", sun);
+        CelestialBody uranus = createPlanet(SUN, URANUS_DISTANCE_TO_SUN_PIXELS, URANUS_RADIUS_PIXELS, URANUS_ORBIT_SPEED, "uranus", sun);
         URANUS = celestialBodies.indexOf(uranus, true);
-        CelestialBody neptune = createPlanet(NEPTUNE_DISTANCE_TO_SUN_PIXELS, NEPTUNE_RADIUS_PIXELS, NEPTUNE_ORBIT_SPEED, "neptune", sun);
+        CelestialBody neptune = createPlanet(SUN, NEPTUNE_DISTANCE_TO_SUN_PIXELS, NEPTUNE_RADIUS_PIXELS, NEPTUNE_ORBIT_SPEED, "neptune", sun);
         NEPTUNE = celestialBodies.indexOf(neptune, true);
     }
 
     private CelestialBody createSun() {
-        Vector2 sunPosition = new Vector2(Gdx.graphics.getWidth() / 2f / PIXELS_TO_METERS, Gdx.graphics.getHeight() / 2f / PIXELS_TO_METERS);
-        float sunRadius = SUN_RADIUS_PIXELS / PIXELS_TO_METERS;
+        Vector2 sunPosition = new Vector2(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f);
+        float sunRadius = SUN_RADIUS_PIXELS;
         Animation<TextureRegion> sunAnimation = createAnimationFromAssetManager("sun");
         CelestialBody sun = new CelestialBody(world, "sun", BodyDef.BodyType.StaticBody, sunRadius, 0, sunPosition, spriteBatch, sunAnimation, null, 0);
         celestialBodies.add(sun);
@@ -124,15 +128,22 @@ public class SolarSystemScreen implements Screen {
         return sun;
     }
 
-    private CelestialBody createPlanet(float distanceToSunPixels, float radiusPixels, float orbitSpeed, String texturePathSuffix, CelestialBody orbitedBody) {
-        float distanceToSun = distanceToSunPixels / PIXELS_TO_METERS;
-        Vector2 position = new Vector2(celestialBodies.get(SUN).getBody().getPosition().x + distanceToSun + celestialBodies.get(SUN).getRadius(), celestialBodies.get(SUN).getBody().getPosition().y);
-        float radius = radiusPixels / PIXELS_TO_METERS;
+    private CelestialBody createPlanet(int orbitedBodyIndex, float distanceToOrbitedBody, float radiusPixels,
+                                       float orbitSpeed, String texturePathSuffix, CelestialBody orbitedBody) {
+        float planetPositionX = celestialBodies.get(orbitedBodyIndex).getBody().getPosition().x;
+        float planetPositionY = celestialBodies.get(orbitedBodyIndex).getBody().getPosition().y;
+        float planetRadius = celestialBodies.get(orbitedBodyIndex).getRadius();
+
+        Vector2 position = new Vector2(planetPositionX + distanceToOrbitedBody + planetRadius, planetPositionY);
+        float radius = radiusPixels;
 
         Animation<TextureRegion> animation = createAnimationFromAssetManager(texturePathSuffix);
-        CelestialBody celestialBody = new CelestialBody(world, texturePathSuffix, BodyDef.BodyType.DynamicBody, radius, orbitSpeed, position, spriteBatch, animation, orbitedBody, distanceToSun);
+        CelestialBody celestialBody = new CelestialBody(world, texturePathSuffix, BodyDef.BodyType.DynamicBody,
+                radius, orbitSpeed, position, spriteBatch, animation, orbitedBody, distanceToOrbitedBody);
+        celestialBody.addClickListener();
 
         celestialBodies.add(celestialBody);
+
         return celestialBody;
     }
 
@@ -167,7 +178,13 @@ public class SolarSystemScreen implements Screen {
     private void drawSolarSystem() {
         for (int i = 0; i < celestialBodies.size; i++) {
             CelestialBody body = celestialBodies.get(i);
-            body.draw(stateTime);
+
+            if (body == celestialBodies.get(SUN))
+                body.draw(stateTime, 2f);
+            else if (body == celestialBodies.get(SATURN))
+                body.draw(stateTime, 3f);
+            else
+                body.draw(stateTime);
         }
     }
 
@@ -215,6 +232,7 @@ public class SolarSystemScreen implements Screen {
 
         updateWorldStage(delta);
         update(delta);
+        debugRenderer.render(world, worldCamera.combined);
     }
 
     public void update(float deltaTime) {

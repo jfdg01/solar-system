@@ -127,8 +127,8 @@ public class CameraController extends InputAdapter {
         if (targetBody != null) {
             Vector2 targetWorldPos = targetBody.getBody().getPosition();
 
-            float targetX = targetWorldPos.x * PIXELS_TO_METERS;
-            float targetY = targetWorldPos.y * PIXELS_TO_METERS;
+            float targetX = targetWorldPos.x;
+            float targetY = targetWorldPos.y;
 
             camera.position.x += (targetX - camera.position.x) * LERP_FACTOR;
             camera.position.y += (targetY - camera.position.y) * LERP_FACTOR;
