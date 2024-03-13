@@ -92,21 +92,25 @@ public class SolarSystemScreen implements Screen {
         float sunRadius = SUN_RADIUS_PIXELS / PIXELS_TO_METERS;
         CelestialBody sun = createCelestialBody(BodyDef.BodyType.StaticBody, sunRadius, 0, sunPosition, "sun");
         celestialBodies.add(sun);
+        SUN = celestialBodies.indexOf(sun, true);
 
         Vector2 earthPosition = new Vector2(sunPosition.x + EARTH_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, sunPosition.y);
         float earthRadius = EARTH_RADIUS_PIXELS / PIXELS_TO_METERS;
         CelestialBody earth = createCelestialBody(BodyDef.BodyType.DynamicBody, earthRadius, EARTH_ORBIT_SPEED, earthPosition, "earth");
         celestialBodies.add(earth);
+        EARTH = celestialBodies.indexOf(earth, true);
 
         Vector2 saturnPosition = new Vector2(sunPosition.x + SATURN_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, sunPosition.y);
         float saturnRadius = SATURN_RADIUS_PIXELS / PIXELS_TO_METERS;
         CelestialBody saturn = createCelestialBody(BodyDef.BodyType.DynamicBody, saturnRadius, SATURN_ORBIT_SPEED, saturnPosition, "saturn");
         celestialBodies.add(saturn);
+        SATURN = celestialBodies.indexOf(saturn, true);
 
         Vector2 moonPosition = new Vector2(earthPosition.x + MOON_DISTANCE_TO_EARTH_PIXELS / PIXELS_TO_METERS, earthPosition.y);
         float moonRadius = MOON_RADIUS_PIXELS / PIXELS_TO_METERS;
         CelestialBody moon = createCelestialBody(BodyDef.BodyType.DynamicBody, moonRadius, MOON_ORBIT_SPEED, moonPosition, "moon");
         celestialBodies.add(moon);
+        MOON = celestialBodies.indexOf(moon, true);
     }
 
     private Animation<TextureRegion> createAnimationFromAssetManager(String regionName) {
