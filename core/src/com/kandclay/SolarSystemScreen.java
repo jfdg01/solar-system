@@ -94,15 +94,24 @@ public class SolarSystemScreen implements Screen {
 
         CelestialBody sun = createSun();
 
-        createPlanet(MERCURY_DISTANCE_TO_SUN_PIXELS, MERCURY_RADIUS_PIXELS, MERCURY_ORBIT_SPEED, "mercury", sun);
-        createPlanet(VENUS_DISTANCE_TO_SUN_PIXELS, VENUS_RADIUS_PIXELS, VENUS_ORBIT_SPEED, "venus", sun);
+        CelestialBody mercury = createPlanet(MERCURY_DISTANCE_TO_SUN_PIXELS, MERCURY_RADIUS_PIXELS, MERCURY_ORBIT_SPEED, "mercury", sun);
+        MERCURY = celestialBodies.indexOf(mercury, true);
+        CelestialBody venus = createPlanet(VENUS_DISTANCE_TO_SUN_PIXELS, VENUS_RADIUS_PIXELS, VENUS_ORBIT_SPEED, "venus", sun);
+        VENUS = celestialBodies.indexOf(venus, true);
         CelestialBody earth = createPlanet(EARTH_DISTANCE_TO_SUN_PIXELS, EARTH_RADIUS_PIXELS, EARTH_ORBIT_SPEED, "earth", sun);
-        createPlanet(MOON_DISTANCE_TO_EARTH_PIXELS, MOON_RADIUS_PIXELS, MOON_ORBIT_SPEED, "moon", earth);
-        createPlanet(MARS_DISTANCE_TO_SUN_PIXELS, MARS_RADIUS_PIXELS, MARS_ORBIT_SPEED, "mars", sun);
-        createPlanet(JUPITER_DISTANCE_TO_SUN_PIXELS, JUPITER_RADIUS_PIXELS, JUPITER_ORBIT_SPEED, "jupiter", sun);
-        createPlanet(SATURN_DISTANCE_TO_SUN_PIXELS, SATURN_RADIUS_PIXELS, SATURN_ORBIT_SPEED, "saturn", sun);
-        createPlanet(URANUS_DISTANCE_TO_SUN_PIXELS, URANUS_RADIUS_PIXELS, URANUS_ORBIT_SPEED, "uranus", sun);
-        createPlanet(NEPTUNE_DISTANCE_TO_SUN_PIXELS, NEPTUNE_RADIUS_PIXELS, NEPTUNE_ORBIT_SPEED, "neptune", sun);
+        EARTH = celestialBodies.indexOf(earth, true);
+        CelestialBody moon = createPlanet(MOON_DISTANCE_TO_EARTH_PIXELS, MOON_RADIUS_PIXELS, MOON_ORBIT_SPEED, "moon", earth);
+        MOON = celestialBodies.indexOf(moon, true);
+        CelestialBody mars = createPlanet(MARS_DISTANCE_TO_SUN_PIXELS, MARS_RADIUS_PIXELS, MARS_ORBIT_SPEED, "mars", sun);
+        MARS = celestialBodies.indexOf(mars, true);
+        CelestialBody jupiter = createPlanet(JUPITER_DISTANCE_TO_SUN_PIXELS, JUPITER_RADIUS_PIXELS, JUPITER_ORBIT_SPEED, "jupiter", sun);
+        JUPITER = celestialBodies.indexOf(jupiter, true);
+        CelestialBody saturn = createPlanet(SATURN_DISTANCE_TO_SUN_PIXELS, SATURN_RADIUS_PIXELS, SATURN_ORBIT_SPEED, "saturn", sun);
+        SATURN = celestialBodies.indexOf(saturn, true);
+        CelestialBody uranus = createPlanet(URANUS_DISTANCE_TO_SUN_PIXELS, URANUS_RADIUS_PIXELS, URANUS_ORBIT_SPEED, "uranus", sun);
+        URANUS = celestialBodies.indexOf(uranus, true);
+        CelestialBody neptune = createPlanet(NEPTUNE_DISTANCE_TO_SUN_PIXELS, NEPTUNE_RADIUS_PIXELS, NEPTUNE_ORBIT_SPEED, "neptune", sun);
+        NEPTUNE = celestialBodies.indexOf(neptune, true);
     }
 
     private CelestialBody createSun() {
@@ -153,29 +162,6 @@ public class SolarSystemScreen implements Screen {
             CelestialBody body = celestialBodies.get(i);
             body.updateOrbit();
         }
-    }
-
-    public void adjustOrbitVelocity(CelestialBody moon, CelestialBody earth, float maxOrbitDistance, float minOrbitDistance) {
-        Vector2 centerToBody = moon.body.getPosition().sub(earth.body.getPosition());
-        float currentDistance = centerToBody.len();
-
-        // Calculate the tangent velocity for the orbiting body
-        Vector2 tangentVelocity = new Vector2(-centerToBody.y, centerToBody.x).nor().scl(moon.getOrbitSpeed());
-
-        // Adjust velocity if the current distance is outside the allowed range
-        if (currentDistance > maxOrbitDistance) {
-            // Calculate a correction vector that points towards the central body to decrease distance
-            Vector2 correctionVector = centerToBody.scl(-1).nor().scl(moon.getOrbitSpeed() * 0.5f); // Apply a gentle pull towards the central body
-            tangentVelocity.add(correctionVector);
-        } else if (currentDistance < minOrbitDistance) {
-            // Calculate a correction vector that points away from the central body to increase distance
-            Vector2 correctionVector = centerToBody.nor().scl(moon.getOrbitSpeed() * 0.5f); // Apply a gentle push away from the central body
-            tangentVelocity.add(correctionVector);
-        }
-
-        // Adjust the orbiting body's velocity, considering the central body's movement as well
-        Vector2 adjustedVelocity = tangentVelocity.add(earth.body.getLinearVelocity());
-        moon.body.setLinearVelocity(adjustedVelocity.x, adjustedVelocity.y);
     }
 
     private void drawSolarSystem() {

@@ -56,11 +56,11 @@ public class Constants {
     public static int MERCURY = 1;
     public static int VENUS = 2;
     public static int EARTH = 3;
-    public static int MOON = 9;
-    public static int MARS = 4;
-    public static int JUPITER = 5;
-    public static int SATURN = 6;
-    public static int URANUS = 7;
-    public static int NEPTUNE = 8;
+    public static int MOON = 4;
+    public static int MARS = 5;
+    public static int JUPITER = 6;
+    public static int SATURN = 7;
+    public static int URANUS = 8;
+    public static int NEPTUNE = 9;
 
 }
