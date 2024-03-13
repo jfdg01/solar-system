@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
@@ -31,13 +32,13 @@ public class SolarSystemScreen implements Screen {
     private OrthographicCamera worldCamera;
     private Batch spriteBatch;
     private float stateTime = 0;
-    private List<CelestialBody> celestialBodies;
+    private Array<CelestialBody> celestialBodies;
     String backgroundPath;
 
     public SolarSystemScreen(SolarSystemGame game) {
         this.game = game;
         this.assetManager = new AssetManager();
-        celestialBodies = new ArrayList<CelestialBody>();
+        celestialBodies = new Array<>();
 
         loadAssets();
     }
@@ -70,7 +71,7 @@ public class SolarSystemScreen implements Screen {
         worldCamera = new OrthographicCamera();
         worldViewport = new ExtendViewport(VIEWPORT_WIDTH_PIXELS_INIT, VIEWPORT_HEIGHT_PIXELS_INIT, worldCamera);
         worldViewport.setScaling(Scaling.contain);
-        cameraController = new CameraController(worldCamera, worldViewport, CAMERA_MOVE_SPEED, ZOOM_IN_FACTOR, ZOOM_OUT_FACTOR, this);
+        cameraController = new CameraController(worldCamera, worldViewport, CAMERA_MOVE_SPEED, ZOOM_IN_FACTOR, ZOOM_OUT_FACTOR, this.getCelestialBodies());
     }
 
     private void initializeStage() {
@@ -109,7 +110,8 @@ public class SolarSystemScreen implements Screen {
     }
 
     private Animation<TextureRegion> createAnimationFromAssetManager(String regionName) {
-        Texture texture = assetManager.get(String.format("sprites/anim/%s.png", regionName), Texture.class);
+        String name = "sprites/anim/" + regionName + ".png";
+        Texture texture = assetManager.get(name, Texture.class);
 
         // Assuming each frame is of equal size, calculate the width and height of each frame
         int frameWidth = texture.getWidth() / ANIMATION_NUM_COLS;
@@ -261,7 +263,7 @@ public class SolarSystemScreen implements Screen {
     public void hide() {
     }
 
-    public List<CelestialBody> getCelestialBodies() {
+    public Array<CelestialBody> getCelestialBodies() {
         return celestialBodies;
     }
 }

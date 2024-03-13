@@ -5,7 +5,10 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.Viewport;
+
+import java.util.ArrayList;
 
 import static com.kandclay.Constants.*;
 
@@ -19,16 +22,17 @@ public class CameraController extends InputAdapter {
     private final float moveSpeed;
     private final float zoomInFactor;
     private final float zoomOutFactor;
-    private final SolarSystemScreen solarSystemScreen;
+    private final Array<CelestialBody> celestialBodies;
     private CelestialBody targetBody = null;
+    private int currentBodyIndex = -1;
 
-    public CameraController(OrthographicCamera camera, Viewport viewport, float moveSpeed, float zoomInFactor, float zoomOutFactor, SolarSystemScreen solarSystemScreen) {
+    public CameraController(OrthographicCamera camera, Viewport viewport, float moveSpeed, float zoomInFactor, float zoomOutFactor, Array<CelestialBody> celestialBodies) {
         this.camera = camera;
         this.viewport = viewport;
         this.moveSpeed = moveSpeed;
         this.zoomInFactor = zoomInFactor;
         this.zoomOutFactor = zoomOutFactor;
-        this.solarSystemScreen = solarSystemScreen;
+        this.celestialBodies = celestialBodies;
     }
 
     @Override
@@ -76,19 +80,25 @@ public class CameraController extends InputAdapter {
                 rightPressed = false;
                 break;
             case Keys.NUM_1:
-                setTargetBody(solarSystemScreen.getCelestialBodies().get(SUN)); // Track Sun
+                setTargetBody(celestialBodies.get(SUN)); // Track Sun
                 break;
             case Keys.NUM_2:
-                setTargetBody(solarSystemScreen.getCelestialBodies().get(EARTH)); // Track Earth
+                setTargetBody(celestialBodies.get(EARTH)); // Track Earth
                 break;
             case Keys.NUM_3:
-                setTargetBody(solarSystemScreen.getCelestialBodies().get(MOON)); // Track Moon
+                setTargetBody(celestialBodies.get(MOON)); // Track Moon
                 break;
             case Keys.NUM_4:
-                setTargetBody(solarSystemScreen.getCelestialBodies().get(SATURN)); // Track Saturn
+                setTargetBody(celestialBodies.get(SATURN)); // Track Saturn
                 break;
             case Keys.NUM_5:
                 setTargetBody(null); // Free mode
+                break;
+            case Keys.LEFT:
+                selectPreviousBody();
+                break;
+            case Keys.RIGHT:
+                selectNextBody();
                 break;
         }
         return false;
@@ -96,6 +106,20 @@ public class CameraController extends InputAdapter {
 
     public void setTargetBody(CelestialBody targetBody) {
         this.targetBody = targetBody;
+    }
+
+    private void selectNextBody() {
+        if (celestialBodies.isEmpty()) return;
+
+        currentBodyIndex = (currentBodyIndex + 1) % celestialBodies.size;
+        setTargetBody(celestialBodies.get(currentBodyIndex));
+    }
+
+    private void selectPreviousBody() {
+        if (celestialBodies.isEmpty()) return;
+
+        currentBodyIndex = (currentBodyIndex - 1 + celestialBodies.size) % celestialBodies.size;
+        setTargetBody(celestialBodies.get(currentBodyIndex));
     }
 
     public void update(float deltaTime) {
