@@ -13,13 +13,16 @@ public class CelestialBody {
     private float orbitSpeed;
     private Animation<TextureRegion> animation;
     private final Batch spriteBatch;
+    private final float distanceToAnchorBody;
+
 
     public CelestialBody(World world, BodyDef.BodyType bodyType, float radius, float orbitSpeed, Vector2 position,
-                         Batch spriteBatch, Animation<TextureRegion> animation) {
+                         Batch spriteBatch, Animation<TextureRegion> animation, float distanceToAnchorBody) {
         this.radius = radius;
         this.orbitSpeed = orbitSpeed;
         this.spriteBatch = spriteBatch;
         this.animation = animation;
+        this.distanceToAnchorBody = distanceToAnchorBody;
         createBody(world, bodyType, radius, position);
     }
 
@@ -89,6 +92,10 @@ public class CelestialBody {
 
     public void setAnimation(Animation<TextureRegion> animation) {
         this.animation = animation;
+    }
+
+    public float getDistanceToAnchorBody() {
+        return distanceToAnchorBody;
     }
 
 }

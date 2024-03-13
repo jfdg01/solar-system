@@ -17,26 +17,15 @@ public class Constants {
     public static final int ANIMATION_NUM_COLS = 32;
     public static final float FRAME_DURATION = 3f / 100f;
 
-    // Sun
-    public static final float SUN_RADIUS_PIXELS = 100;
+    public static int SUN = 0;
+    public static int MERCURY = 1;
+    public static int VENUS = 2;
+    public static int EARTH = 3;
+    public static int MOON = 9;
+    public static int MARS = 4;
+    public static int JUPITER = 5;
+    public static int SATURN = 6;
+    public static int URANUS = 7;
+    public static int NEPTUNE = 8;
 
-    // Earth
-    public static final float EARTH_ORBIT_SPEED = 2;
-    public static final float EARTH_RADIUS_PIXELS = 16;
-    public static final float EARTH_DISTANCE_TO_SUN_PIXELS = 400;
-
-    // Saturn
-    public static final float SATURN_ORBIT_SPEED = 1.5f;
-    public static final float SATURN_RADIUS_PIXELS = 80;
-    public static final float SATURN_DISTANCE_TO_SUN_PIXELS = 1200;
-
-    // Moon
-    static final float MOON_ORBIT_SPEED = 3f;
-    static final float MOON_RADIUS_PIXELS = 6;
-    static final float MOON_DISTANCE_TO_EARTH_PIXELS = 150;
-
-    static int SUN = 0;
-    static int EARTH = 1;
-    static int SATURN = 2;
-    static int MOON = 3;
 }

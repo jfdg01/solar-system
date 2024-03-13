@@ -51,6 +51,13 @@ public class SolarSystemScreen implements Screen {
         assetManager.load("sprites/anim/saturn.png", Texture.class);
         assetManager.load("sprites/anim/moon.png", Texture.class);
         assetManager.load("sprites/anim/sun.png", Texture.class);
+        assetManager.load("sprites/anim/uranus.png", Texture.class);
+        //
+        /*assetManager.load("sprites/anim/venus.png", Texture.class);
+        assetManager.load("sprites/anim/jupiter.png", Texture.class);
+        assetManager.load("sprites/anim/mars.png", Texture.class);
+        assetManager.load("sprites/anim/neptune.png", Texture.class);*/
+
         assetManager.finishLoading();
     }
 
@@ -89,29 +96,66 @@ public class SolarSystemScreen implements Screen {
 
     private void createSolarSystem() {
         Vector2 sunPosition = new Vector2(Gdx.graphics.getWidth() / 2f / PIXELS_TO_METERS, Gdx.graphics.getHeight() / 2f / PIXELS_TO_METERS);
-        float sunRadius = SUN_RADIUS_PIXELS / PIXELS_TO_METERS;
-        CelestialBody sun = createCelestialBody(BodyDef.BodyType.StaticBody, sunRadius, 0, sunPosition, "sun");
+        float sunRadius = 100f / PIXELS_TO_METERS;
+        CelestialBody sun = createCelestialBody(BodyDef.BodyType.StaticBody, sunRadius, 0, sunPosition, "sun", 0f / PIXELS_TO_METERS);
         celestialBodies.add(sun);
         SUN = celestialBodies.indexOf(sun, true);
 
-        Vector2 earthPosition = new Vector2(sunPosition.x + EARTH_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, sunPosition.y);
-        float earthRadius = EARTH_RADIUS_PIXELS / PIXELS_TO_METERS;
-        CelestialBody earth = createCelestialBody(BodyDef.BodyType.DynamicBody, earthRadius, EARTH_ORBIT_SPEED, earthPosition, "earth");
+        Vector2 mercuryPosition = new Vector2(sunPosition.x + 200f / PIXELS_TO_METERS, sunPosition.y);
+        float mercuryRadius = 8f / PIXELS_TO_METERS;
+        CelestialBody mercury = createCelestialBody(BodyDef.BodyType.DynamicBody, mercuryRadius, 4f, mercuryPosition, "sun", 200f / PIXELS_TO_METERS);
+        celestialBodies.add(mercury);
+        MERCURY = celestialBodies.indexOf(mercury, true);
+
+        Vector2 venusPosition = new Vector2(sunPosition.x + 200f / PIXELS_TO_METERS, sunPosition.y);
+        float venusRadius = 15f / PIXELS_TO_METERS;
+        CelestialBody venus = createCelestialBody(BodyDef.BodyType.DynamicBody, venusRadius, 3.5f, venusPosition, "sun", 200f / PIXELS_TO_METERS);
+        celestialBodies.add(venus);
+        VENUS = celestialBodies.indexOf(venus, true);
+
+        Vector2 earthPosition = new Vector2(sunPosition.x + 400f / PIXELS_TO_METERS, sunPosition.y);
+        float earthRadius = 16f / PIXELS_TO_METERS;
+        CelestialBody earth = createCelestialBody(BodyDef.BodyType.DynamicBody, earthRadius, 2f, earthPosition, "earth", 400f / PIXELS_TO_METERS);
         celestialBodies.add(earth);
         EARTH = celestialBodies.indexOf(earth, true);
 
-        Vector2 saturnPosition = new Vector2(sunPosition.x + SATURN_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS, sunPosition.y);
-        float saturnRadius = SATURN_RADIUS_PIXELS / PIXELS_TO_METERS;
-        CelestialBody saturn = createCelestialBody(BodyDef.BodyType.DynamicBody, saturnRadius, SATURN_ORBIT_SPEED, saturnPosition, "saturn");
+        Vector2 moonPosition = new Vector2(earthPosition.x + 150f / PIXELS_TO_METERS, earthPosition.y);
+        float moonRadius = 6f / PIXELS_TO_METERS;
+        CelestialBody moon = createCelestialBody(BodyDef.BodyType.DynamicBody, moonRadius, 3f, moonPosition, "moon", 150f / PIXELS_TO_METERS);
+        celestialBodies.add(moon);
+        MOON = celestialBodies.indexOf(moon, true);
+
+        Vector2 marsPosition = new Vector2(sunPosition.x + 600f / PIXELS_TO_METERS, sunPosition.y);
+        float marsRadius = 12f / PIXELS_TO_METERS;
+        CelestialBody mars = createCelestialBody(BodyDef.BodyType.DynamicBody, marsRadius, 1.8f, marsPosition, "sun", 600f / PIXELS_TO_METERS);
+        celestialBodies.add(mars);
+        MARS = celestialBodies.indexOf(mars, true);
+
+        Vector2 jupiterPosition = new Vector2(sunPosition.x + 800f / PIXELS_TO_METERS, sunPosition.y);
+        float jupiterRadius = 90f / PIXELS_TO_METERS;
+        CelestialBody jupiter = createCelestialBody(BodyDef.BodyType.DynamicBody, jupiterRadius, 1.3f, jupiterPosition, "sun", 800f / PIXELS_TO_METERS);
+        celestialBodies.add(jupiter);
+        JUPITER = celestialBodies.indexOf(jupiter, true);
+
+        Vector2 saturnPosition = new Vector2(sunPosition.x + 1200f / PIXELS_TO_METERS, sunPosition.y);
+        float saturnRadius = 80f / PIXELS_TO_METERS;
+        CelestialBody saturn = createCelestialBody(BodyDef.BodyType.DynamicBody, saturnRadius, 1.5f, saturnPosition, "saturn", 1200f / PIXELS_TO_METERS);
         celestialBodies.add(saturn);
         SATURN = celestialBodies.indexOf(saturn, true);
 
-        Vector2 moonPosition = new Vector2(earthPosition.x + MOON_DISTANCE_TO_EARTH_PIXELS / PIXELS_TO_METERS, earthPosition.y);
-        float moonRadius = MOON_RADIUS_PIXELS / PIXELS_TO_METERS;
-        CelestialBody moon = createCelestialBody(BodyDef.BodyType.DynamicBody, moonRadius, MOON_ORBIT_SPEED, moonPosition, "moon");
-        celestialBodies.add(moon);
-        MOON = celestialBodies.indexOf(moon, true);
+        Vector2 uranusPosition = new Vector2(sunPosition.x + 1600f / PIXELS_TO_METERS, sunPosition.y);
+        float uranusRadius = 60f / PIXELS_TO_METERS;
+        CelestialBody uranus = createCelestialBody(BodyDef.BodyType.DynamicBody, uranusRadius, 1.2f, uranusPosition, "uranus", 1600f / PIXELS_TO_METERS);
+        celestialBodies.add(uranus);
+        URANUS = celestialBodies.indexOf(uranus, true);
+
+        Vector2 neptunePosition = new Vector2(sunPosition.x + 2000f / PIXELS_TO_METERS, sunPosition.y);
+        float neptuneRadius = 58f / PIXELS_TO_METERS;
+        CelestialBody neptune = createCelestialBody(BodyDef.BodyType.DynamicBody, neptuneRadius, 1.1f, neptunePosition, "sun", 2000f / PIXELS_TO_METERS);
+        celestialBodies.add(neptune);
+        NEPTUNE = celestialBodies.indexOf(neptune, true);
     }
+
 
     private Animation<TextureRegion> createAnimationFromAssetManager(String regionName) {
         String name = "sprites/anim/" + regionName + ".png";
@@ -135,16 +179,19 @@ public class SolarSystemScreen implements Screen {
     }
 
     private CelestialBody createCelestialBody(BodyDef.BodyType bodyType, float radius, float orbitSpeed,
-                                              Vector2 position, String regionName) {
+                                              Vector2 position, String texturePathSuffix, float distanceToAnchorBody) {
 
-        Animation<TextureRegion> animation = createAnimationFromAssetManager(regionName);
-        return new CelestialBody(world, bodyType, radius, orbitSpeed, position, spriteBatch, animation);
+        Animation<TextureRegion> animation = createAnimationFromAssetManager(texturePathSuffix);
+        return new CelestialBody(world, bodyType, radius, orbitSpeed, position, spriteBatch, animation, distanceToAnchorBody);
     }
 
     public void manageOrbits() {
-        adjustOrbitVelocity(celestialBodies.get(MOON), celestialBodies.get(EARTH), MOON_DISTANCE_TO_EARTH_PIXELS / PIXELS_TO_METERS);
-        adjustOrbitVelocity(celestialBodies.get(EARTH), celestialBodies.get(SUN), EARTH_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS);
-        adjustOrbitVelocity(celestialBodies.get(SATURN), celestialBodies.get(SUN), SATURN_DISTANCE_TO_SUN_PIXELS / PIXELS_TO_METERS);
+        adjustOrbitVelocity(celestialBodies.get(MERCURY), celestialBodies.get(SUN), celestialBodies.get(MERCURY).getDistanceToAnchorBody() / PIXELS_TO_METERS);
+        /*
+        adjustOrbitVelocity(celestialBodies.get(VENUS), celestialBodies.get(SUN), celestialBodies.get(VENUS).getDistanceToAnchorBody() / PIXELS_TO_METERS);
+        adjustOrbitVelocity(celestialBodies.get(EARTH), celestialBodies.get(SUN), celestialBodies.get(EARTH).getDistanceToAnchorBody() / PIXELS_TO_METERS);
+        adjustOrbitVelocity(celestialBodies.get(MOON), celestialBodies.get(EARTH), celestialBodies.get(MOON).getDistanceToAnchorBody() / PIXELS_TO_METERS);
+        */
     }
 
     public void adjustOrbitVelocity(CelestialBody orbitingBody, CelestialBody centralBody, float maxOrbitDistance) {
