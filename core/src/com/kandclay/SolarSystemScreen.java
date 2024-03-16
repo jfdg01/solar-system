@@ -12,8 +12,10 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
@@ -67,6 +69,7 @@ public class SolarSystemScreen implements Screen {
         initializeWorld();
         initializeCameraAndViewport();
         initializeStage();
+
         setupInputProcessors();
         createSolarSystem();
     }
@@ -85,6 +88,8 @@ public class SolarSystemScreen implements Screen {
     private void initializeStage() {
         worldStage = new Stage(worldViewport);
         spriteBatch = worldStage.getBatch();
+        Actor backgroundActor = createBackgroundActor();
+        worldStage.addActor(backgroundActor);
     }
 
     private void setupInputProcessors() {
@@ -188,7 +193,8 @@ public class SolarSystemScreen implements Screen {
         }
     }
 
-    private void drawBackground() {
+    /*private void drawBackground() {
+
         Texture backgroundTexture = assetManager.get(backgroundPath, Texture.class);
         float backgroundWidth = backgroundTexture.getWidth();
         float backgroundHeight = backgroundTexture.getHeight();
@@ -215,7 +221,47 @@ public class SolarSystemScreen implements Screen {
                 spriteBatch.draw(backgroundTexture, startX + (x * backgroundWidth), startY + (y * backgroundHeight));
             }
         }
+    }*/
+
+    private Image createBackgroundActor() {
+        Texture backgroundTexture = assetManager.get(backgroundPath, Texture.class);
+        backgroundTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.MirroredRepeat);
+
+        // Assuming max zoom level to calculate the repeat pattern size
+        float maxVisibleWidth = worldViewport.getWorldWidth() * worldCamera.zoom;
+        float maxVisibleHeight = worldViewport.getWorldHeight() * worldCamera.zoom;
+
+        int repeatX = Math.max(1, (int) Math.ceil(maxVisibleWidth / backgroundTexture.getWidth()));
+        int repeatY = Math.max(1, (int) Math.ceil(maxVisibleHeight / backgroundTexture.getHeight()));
+
+        TextureRegion textureRegion = new TextureRegion(backgroundTexture);
+        textureRegion.setRegion(0, 0, backgroundTexture.getWidth() * repeatX, backgroundTexture.getHeight() * repeatY);
+
+        Image backgroundActor = new Image(textureRegion);
+        backgroundActor.setSize(maxVisibleWidth, maxVisibleHeight);
+
+        return backgroundActor;
     }
+
+
+    private void drawBackground(Image backgroundActor) {
+        // Calculate the visible area considering zoom
+        float visibleWidth = worldViewport.getWorldWidth() * worldCamera.zoom;
+        float visibleHeight = worldViewport.getWorldHeight() * worldCamera.zoom;
+
+        // Position the actor's bottom-left corner to match the camera's bottom-left position
+        float startX = worldCamera.position.x - (visibleWidth / 2);
+        float startY = worldCamera.position.y - (visibleHeight / 2);
+        backgroundActor.setPosition(startX, startY);
+
+        // Ensure the actor's size matches the current visible area (in case of zoom changes)
+        backgroundActor.setSize(visibleWidth, visibleHeight);
+
+        // Assuming you have a stage, ensure the actor has been added to it
+        // This could be handled outside of this method to avoid adding the actor multiple times
+        //  // This line should be called once when initializing your scene
+    }
+
 
 
     @Override
@@ -226,13 +272,13 @@ public class SolarSystemScreen implements Screen {
         stepWorld();
 
         spriteBatch.begin();
-        drawBackground();
+        // drawBackground();
         drawSolarSystem();
         spriteBatch.end();
 
         updateWorldStage(delta);
         update(delta);
-        debugRenderer.render(world, worldCamera.combined);
+        // debugRenderer.render(world, worldCamera.combined);
     }
 
     public void update(float deltaTime) {
