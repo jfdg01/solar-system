@@ -13,124 +13,60 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 public class CelestialBody extends Actor {
 
     public String name;
-    public Body body;
     private float radius;
-    private float orbitSpeed;
     private Animation<TextureRegion> animation;
-    private final Batch spriteBatch;
-    private final float distanceToAnchorBody;
-    private final CelestialBody orbitedBody;
+    private float stateTime = 0;
+    private CelestialBody orbitedBody;
+    private float distanceToOrbitedBody;
+    private float orbitSpeed;
 
 
-    public CelestialBody(World world, String name, BodyDef.BodyType bodyType, float radius, float orbitSpeed, Vector2 position,
-                         Batch spriteBatch, Animation<TextureRegion> animation, CelestialBody orbitedBody, float distanceToAnchorBody) {
+    public CelestialBody(String name, float radius, Animation<TextureRegion> animation,
+                         CelestialBody orbitedBody, float distanceToOrbitedBody, float orbitSpeed) {
         this.name = name;
         this.radius = radius;
-        this.orbitSpeed = orbitSpeed;
-        this.spriteBatch = spriteBatch;
         this.animation = animation;
-        this.distanceToAnchorBody = distanceToAnchorBody;
         this.orbitedBody = orbitedBody;
-        createBody(world, bodyType, radius, position);
+        this.distanceToOrbitedBody = distanceToOrbitedBody;
+        this.orbitSpeed = orbitSpeed;
+
+        setSize(radius * 2, radius * 2); // Assumes the texture's width and height represent the full diameter.
+        addClickListener();
     }
 
-    public void updateOrbit() {
-        if (this.orbitedBody != null) { // Ensure there is a central body to orbit around
-            float maxOrbitDistance = this.distanceToAnchorBody * 1.1f;
-            float minOrbitDistance = this.distanceToAnchorBody * 0.9f;
-            adjustOrbitVelocity(this.orbitedBody, maxOrbitDistance, minOrbitDistance);
-        }
+    @Override
+    public void act(float delta) {
+        super.act(delta);
+        stateTime += delta;
+
+        // Orbit logic could be implemented here if desired, affecting the position.
+        updateOrbit(delta);
     }
 
-    public void addClickListener() {
-        // System.out.printf("Adding click listener to " + this.name + "\n");
+    private void updateOrbit(float delta) {
+        // Implement logic to update the position of the celestial body based on its orbit
+        // This is a placeholder for custom orbit logic.
+    }
+
+    @Override
+    public void draw(Batch batch, float parentAlpha) {
+        TextureRegion currentFrame = animation.getKeyFrame(stateTime, true);
+        batch.draw(currentFrame, getX(), getY(), getOriginX(), getOriginY(), getWidth(), getHeight(), getScaleX(), getScaleY(), getRotation());
+    }
+
+    private void addClickListener() {
         this.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                System.out.println("Celestial body clicked!");
+                // Handle click event. This could be used to select the celestial body or display information about it.
+                System.out.println(name + " clicked!");
             }
         });
     }
 
-    public void adjustOrbitVelocity(CelestialBody centralBody, float maxOrbitDistance, float minOrbitDistance) {
-        if (centralBody == null) {
-            return;
-        }
-
-        Vector2 centerToBody = this.body.getPosition().sub(centralBody.body.getPosition());
-        float currentDistance = centerToBody.len();
-
-        Vector2 tangentVelocity = new Vector2(-centerToBody.y, centerToBody.x).nor().scl(this.getOrbitSpeed());
-
-        if (currentDistance > maxOrbitDistance) {
-            Vector2 correctionVector = centerToBody.scl(-1).nor().scl(this.getOrbitSpeed() * 0.5f);
-            tangentVelocity.add(correctionVector);
-        } else if (currentDistance < minOrbitDistance) {
-            Vector2 correctionVector = centerToBody.nor().scl(this.getOrbitSpeed() * 0.5f);
-            tangentVelocity.add(correctionVector);
-        }
-
-        Vector2 adjustedVelocity = tangentVelocity.add(centralBody.body.getLinearVelocity());
-        this.body.setLinearVelocity(adjustedVelocity.x, adjustedVelocity.y);
-    }
-
-    private void createBody(World world, BodyDef.BodyType bodyType, float radius, Vector2 position) {
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = bodyType;
-        bodyDef.position.set(position);
-
-        body = world.createBody(bodyDef);
-
-        CircleShape shape = new CircleShape();
-        shape.setRadius(radius);
-
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = shape;
-        fixtureDef.density = (float) 1.0;
-
-        body.createFixture(fixtureDef);
-        shape.dispose();
-    }
-
-    public void draw(float stateTime, float scaleFactor) {
-
-        TextureRegion currentRegion = this.animation.getKeyFrame(stateTime, true);
-
-        // Calculate the drawing parameters.
-        Vector2 position = this.body.getPosition();
-        float radiusScaled = this.radius * scaleFactor;
-        drawScaled(currentRegion, position, radiusScaled);
-    }
-
-    public void draw(float stateTime) {
-
-        TextureRegion currentRegion = this.animation.getKeyFrame(stateTime, true);
-
-        // Calculate the drawing parameters.
-        Vector2 position = this.body.getPosition();
-        drawScaled(currentRegion, position, this.radius);
-    }
-
-    private void drawScaled(TextureRegion currentRegion, Vector2 position, float scalePixels) {
-        float scale = (scalePixels * 2) / currentRegion.getRegionWidth();
-        float screenX = position.x - currentRegion.getRegionWidth() / 2f;
-        float screenY = position.y - currentRegion.getRegionHeight() / 2f;
-        float rotation = MathUtils.radiansToDegrees * this.body.getAngle();
-
-        spriteBatch.draw(currentRegion, screenX, screenY, currentRegion.getRegionWidth() / 2f, currentRegion.getRegionHeight() / 2f,
-                currentRegion.getRegionWidth(), currentRegion.getRegionHeight(), scale, scale, rotation);
-    }
 
     public float getOrbitSpeed() {
         return orbitSpeed;
-    }
-
-    public Body getBody() {
-        return body;
-    }
-
-    public void setBody(Body body) {
-        this.body = body;
     }
 
     public float getRadius() {
@@ -151,19 +87,6 @@ public class CelestialBody extends Actor {
 
     public void setAnimation(Animation<TextureRegion> animation) {
         this.animation = animation;
-    }
-
-    public float getDistanceToAnchorBody() {
-        return distanceToAnchorBody;
-    }
-
-    @Override
-    public String toString() {
-        return name + "{" +
-                "radius=" + radius +
-                ", orbitSpeed=" + orbitSpeed +
-                ", distanceToAnchorBody=" + distanceToAnchorBody +
-                '}';
     }
 }
 
