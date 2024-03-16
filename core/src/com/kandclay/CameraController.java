@@ -3,17 +3,13 @@ package com.kandclay;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.Viewport;
-
-import java.util.ArrayList;
 
 import static com.kandclay.Constants.*;
 
 public class CameraController extends InputAdapter {
     private final OrthographicCamera camera;
-    private Viewport viewport;
     private boolean upPressed = false;
     private boolean downPressed = false;
     private boolean leftPressed = false;
@@ -21,13 +17,12 @@ public class CameraController extends InputAdapter {
     private final float moveSpeed;
     private final float zoomInFactor;
     private final float zoomOutFactor;
-    private final Array<CelestialBody> celestialBodies;
-    private CelestialBody targetBody = null;
+    private final Array<CelestialBodyActor> celestialBodies;
+    private CelestialBodyActor targetBody = null;
     private int currentBodyIndex = -1;
 
-    public CameraController(OrthographicCamera camera, Viewport viewport, float moveSpeed, float zoomInFactor, float zoomOutFactor, Array<CelestialBody> celestialBodies) {
+    public CameraController(OrthographicCamera camera, float moveSpeed, float zoomInFactor, float zoomOutFactor, Array<CelestialBodyActor> celestialBodies) {
         this.camera = camera;
-        this.viewport = viewport;
         this.moveSpeed = moveSpeed;
         this.zoomInFactor = zoomInFactor;
         this.zoomOutFactor = zoomOutFactor;
@@ -105,7 +100,7 @@ public class CameraController extends InputAdapter {
         return false;
     }
 
-    public void setTargetBody(CelestialBody targetBody) {
+    public void setTargetBody(CelestialBodyActor targetBody) {
         this.targetBody = targetBody;
     }
 

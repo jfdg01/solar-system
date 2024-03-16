@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
@@ -25,13 +26,13 @@ public class SolarSystemScreen implements Screen {
     private ExtendViewport worldViewport;
     private OrthographicCamera worldCamera;
     private Batch spriteBatch;
-    private final Array<CelestialBody> celestialBodies;
+    private final Array<CelestialBodyActor> celestialBodies;
     String backgroundPath;
 
     public SolarSystemScreen(SolarSystemGame game) {
         this.game = game;
         this.assetManager = new AssetManager();
-        celestialBodies = new Array<CelestialBody>();
+        celestialBodies = new Array<CelestialBodyActor>();
 
         loadAssets();
     }
@@ -59,6 +60,7 @@ public class SolarSystemScreen implements Screen {
     public void show() {
         initializeCameraAndViewport();
         initializeStage();
+        initializeBackground();
 
         setupInputProcessors();
         createSolarSystem();
@@ -68,13 +70,26 @@ public class SolarSystemScreen implements Screen {
         worldCamera = new OrthographicCamera();
         worldViewport = new ExtendViewport(VIEWPORT_WIDTH_PIXELS_INIT, VIEWPORT_HEIGHT_PIXELS_INIT, worldCamera);
         worldViewport.setScaling(Scaling.contain);
-        cameraController = new CameraController(worldCamera, worldViewport, CAMERA_MOVE_SPEED, ZOOM_IN_FACTOR, ZOOM_OUT_FACTOR, this.getCelestialBodies());
+        cameraController = new CameraController(worldCamera, CAMERA_MOVE_SPEED, ZOOM_IN_FACTOR, ZOOM_OUT_FACTOR, this.getCelestialBodies());
     }
 
     private void initializeStage() {
         worldStage = new Stage(worldViewport);
         spriteBatch = worldStage.getBatch();
     }
+
+    private void initializeBackground() {
+        Texture backgroundTexture = assetManager.get(backgroundPath, Texture.class);
+
+        BackgroundActor backgroundActor = new BackgroundActor(backgroundTexture, worldCamera);
+
+        backgroundActor.setSize(worldViewport.getWorldWidth(), worldViewport.getWorldHeight());
+
+        backgroundActor.setPosition(0, 0);
+
+        worldStage.addActor(backgroundActor);
+    }
+
 
     private void setupInputProcessors() {
         InputMultiplexer multiplexer = new InputMultiplexer();
@@ -85,31 +100,31 @@ public class SolarSystemScreen implements Screen {
     }
 
     private void createSolarSystem() {
-        CelestialBody sun = createSun();
+        CelestialBodyActor sun = createSun();
 
-        CelestialBody mercury = createPlanet(MERCURY_DISTANCE_TO_SUN_PIXELS, MERCURY_RADIUS_PIXELS, MERCURY_ORBIT_SPEED, "mercury");
+        CelestialBodyActor mercury = createPlanet(MERCURY_DISTANCE_TO_SUN_PIXELS, MERCURY_RADIUS_PIXELS, MERCURY_ORBIT_SPEED, "mercury");
         MERCURY = celestialBodies.indexOf(mercury, true);
-        CelestialBody venus = createPlanet(VENUS_DISTANCE_TO_SUN_PIXELS, VENUS_RADIUS_PIXELS, VENUS_ORBIT_SPEED, "venus");
+        CelestialBodyActor venus = createPlanet(VENUS_DISTANCE_TO_SUN_PIXELS, VENUS_RADIUS_PIXELS, VENUS_ORBIT_SPEED, "venus");
         VENUS = celestialBodies.indexOf(venus, true);
-        CelestialBody earth = createPlanet(EARTH_DISTANCE_TO_SUN_PIXELS, EARTH_RADIUS_PIXELS, EARTH_ORBIT_SPEED, "earth");
+        CelestialBodyActor earth = createPlanet(EARTH_DISTANCE_TO_SUN_PIXELS, EARTH_RADIUS_PIXELS, EARTH_ORBIT_SPEED, "earth");
         EARTH = celestialBodies.indexOf(earth, true);
         // Moon orbiting Earth
-        CelestialBody moon = createPlanet(MOON_DISTANCE_TO_EARTH_PIXELS, MOON_RADIUS_PIXELS, MOON_ORBIT_SPEED, "moon", earth, 1f);
+        CelestialBodyActor moon = createPlanet(MOON_DISTANCE_TO_EARTH_PIXELS, MOON_RADIUS_PIXELS, MOON_ORBIT_SPEED, "moon", earth);
         MOON = celestialBodies.indexOf(moon, true);
-        CelestialBody mars = createPlanet(MARS_DISTANCE_TO_SUN_PIXELS, MARS_RADIUS_PIXELS, MARS_ORBIT_SPEED, "mars");
+        CelestialBodyActor mars = createPlanet(MARS_DISTANCE_TO_SUN_PIXELS, MARS_RADIUS_PIXELS, MARS_ORBIT_SPEED, "mars");
         MARS = celestialBodies.indexOf(mars, true);
-        CelestialBody jupiter = createPlanet(JUPITER_DISTANCE_TO_SUN_PIXELS, JUPITER_RADIUS_PIXELS, JUPITER_ORBIT_SPEED, "jupiter");
+        CelestialBodyActor jupiter = createPlanet(JUPITER_DISTANCE_TO_SUN_PIXELS, JUPITER_RADIUS_PIXELS, JUPITER_ORBIT_SPEED, "jupiter");
         JUPITER = celestialBodies.indexOf(jupiter, true);
-        CelestialBody saturn = createPlanet(SATURN_DISTANCE_TO_SUN_PIXELS, SATURN_RADIUS_PIXELS, SATURN_ORBIT_SPEED, "saturn", sun, 3f);
+        CelestialBodyActor saturn = createPlanet(SATURN_DISTANCE_TO_SUN_PIXELS, SATURN_RADIUS_PIXELS, SATURN_ORBIT_SPEED, "saturn", sun);
         SATURN = celestialBodies.indexOf(saturn, true);
-        CelestialBody uranus = createPlanet(URANUS_DISTANCE_TO_SUN_PIXELS, URANUS_RADIUS_PIXELS, URANUS_ORBIT_SPEED, "uranus");
+        CelestialBodyActor uranus = createPlanet(URANUS_DISTANCE_TO_SUN_PIXELS, URANUS_RADIUS_PIXELS, URANUS_ORBIT_SPEED, "uranus");
         URANUS = celestialBodies.indexOf(uranus, true);
-        CelestialBody neptune = createPlanet(NEPTUNE_DISTANCE_TO_SUN_PIXELS, NEPTUNE_RADIUS_PIXELS, NEPTUNE_ORBIT_SPEED, "neptune");
+        CelestialBodyActor neptune = createPlanet(NEPTUNE_DISTANCE_TO_SUN_PIXELS, NEPTUNE_RADIUS_PIXELS, NEPTUNE_ORBIT_SPEED, "neptune");
         NEPTUNE = celestialBodies.indexOf(neptune, true);
     }
 
 
-    private CelestialBody createSun() {
+    private CelestialBodyActor createSun() {
         float sunRadius = SUN_RADIUS_PIXELS;
         Animation<TextureRegion> sunAnimation = createAnimationFromAssetManager("sun");
 
@@ -117,30 +132,26 @@ public class SolarSystemScreen implements Screen {
         float sunX = (Gdx.graphics.getWidth() / 2f) - sunRadius; // Center the sun on the screen
         float sunY = (Gdx.graphics.getHeight() / 2f) - sunRadius; // Center the sun on the screen
 
-        // Create the sun CelestialBody without needing Box2D physics parameters
-        CelestialBody sun = new CelestialBody("sun", sunRadius, sunAnimation, null, 0, 0);
+        CelestialBodyActor sun = new CelestialBodyActor("sun", sunRadius, sunAnimation, null, 0, 0);
 
-        sun.setPosition(sunX, sunY); // Set the sun's position
-        worldStage.addActor(sun); // Add the sun to the stage for it to be managed and rendered
-        sun.setOriginX(sun.getWidth() / 2);
-        sun.setOriginY(sun.getHeight() / 2);
-        sun.setScale(2f);
+        sun.setPosition(sunX, sunY);
+        worldStage.addActor(sun);
 
         celestialBodies.add(sun);
-        SUN = celestialBodies.indexOf(sun, true); // Update index reference if needed
+        SUN = celestialBodies.indexOf(sun, true);
 
         return sun;
     }
 
     // Reduce visual clutter
-    private CelestialBody createPlanet(float distanceToOrbitedBody, float radiusPixels,
-                                     float orbitSpeed, String texturePathSuffix) {
-        return createPlanet(distanceToOrbitedBody, radiusPixels, orbitSpeed, texturePathSuffix, celestialBodies.get(SUN), 1.0f);
+    private CelestialBodyActor createPlanet(float distanceToOrbitedBody, float radiusPixels,
+                                            float orbitSpeed, String texturePathSuffix) {
+        return createPlanet(distanceToOrbitedBody, radiusPixels, orbitSpeed, texturePathSuffix, celestialBodies.get(SUN));
     }
 
-    private CelestialBody createPlanet(float distanceToOrbitedBody, float radiusPixels,
-                                       float orbitSpeed, String texturePathSuffix, CelestialBody orbitedBody, float scale) {
-        // Assuming orbitedBody's position has already been set appropriately
+    private CelestialBodyActor createPlanet(float distanceToOrbitedBody, float radiusPixels,
+                                            float orbitSpeed, String texturePathSuffix, CelestialBodyActor orbitedBody) {
+
         float orbitedBodyX = orbitedBody.getX() + orbitedBody.getWidth() / 2; // Center X of the orbited body
         float orbitedBodyY = orbitedBody.getY() + orbitedBody.getHeight() / 2; // Center Y of the orbited body
 
@@ -151,13 +162,10 @@ public class SolarSystemScreen implements Screen {
         Animation<TextureRegion> animation = createAnimationFromAssetManager(texturePathSuffix);
 
         // Create the planet CelestialBody without needing Box2D physics parameters
-        CelestialBody planet = new CelestialBody(texturePathSuffix, radiusPixels, animation, orbitedBody, distanceToOrbitedBody, orbitSpeed);
+        CelestialBodyActor planet = new CelestialBodyActor(texturePathSuffix, radiusPixels, animation, orbitedBody, distanceToOrbitedBody, orbitSpeed);
 
         // Set the planet's position
         planet.setPosition(planetX, planetY);
-        planet.setOriginX(planet.getWidth() / 2);
-        planet.setOriginY(planet.getHeight() / 2);
-        planet.setScale(scale);
 
         // Add the planet to the stage and celestial bodies list
         worldStage.addActor(planet);
@@ -187,36 +195,6 @@ public class SolarSystemScreen implements Screen {
         return new Animation<TextureRegion>(FRAME_DURATION, animationFrames);
     }
 
-    private void drawBackgroundHard() {
-
-        Texture backgroundTexture = assetManager.get(backgroundPath, Texture.class);
-        float backgroundWidth = backgroundTexture.getWidth();
-        float backgroundHeight = backgroundTexture.getHeight();
-
-        // Calculate visible area considering zoom
-        float visibleWidth = worldViewport.getWorldWidth() * worldCamera.zoom;
-        float visibleHeight = worldViewport.getWorldHeight() * worldCamera.zoom;
-
-        // Calculate the offset to align the background center with the camera center
-        float startX = worldCamera.position.x - (backgroundWidth / 2);
-        float startY = worldCamera.position.y - (backgroundHeight / 2);
-
-        // Calculate the required number of tiles to cover the visible area, including extra for zooming out
-        int tilesX = (int) Math.ceil(visibleWidth / backgroundWidth) + 2; // Adding 2 for padding
-        int tilesY = (int) Math.ceil(visibleHeight / backgroundHeight) + 2; // Adding 2 for padding
-
-        // Adjust for initial layer to be centered
-        startX -= (tilesX / 2f) * backgroundWidth;
-        startY -= (tilesY / 2f) * backgroundHeight;
-
-        // Draw the background tiles
-        for (int x = 0; x < tilesX; x++) {
-            for (int y = 0; y < tilesY; y++) {
-                spriteBatch.draw(backgroundTexture, startX + (x * backgroundWidth), startY + (y * backgroundHeight));
-            }
-        }
-    }
-
     @Override
     public void render(float delta) {
 
@@ -224,10 +202,6 @@ public class SolarSystemScreen implements Screen {
 
         updateWorldStage(delta);
         cameraController.update(delta);
-
-        spriteBatch.begin();
-        drawBackgroundHard();
-        spriteBatch.end();
 
         worldStage.draw();
     }
@@ -245,6 +219,11 @@ public class SolarSystemScreen implements Screen {
     @Override
     public void resize(int width, int height) {
         worldViewport.update(width, height);
+
+        Actor backgroundActor = worldStage.getActors().first();
+        if (backgroundActor instanceof BackgroundActor) {
+            backgroundActor.setSize(worldViewport.getWorldWidth(), worldViewport.getWorldHeight());
+        }
     }
 
     @Override
@@ -265,7 +244,7 @@ public class SolarSystemScreen implements Screen {
     public void hide() {
     }
 
-    public Array<CelestialBody> getCelestialBodies() {
+    public Array<CelestialBodyActor> getCelestialBodies() {
         return celestialBodies;
     }
 }

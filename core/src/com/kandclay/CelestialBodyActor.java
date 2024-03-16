@@ -3,26 +3,24 @@ package com.kandclay;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
-public class CelestialBody extends Actor {
+public class CelestialBodyActor extends Actor {
 
     public String name;
     private float radius;
     private Animation<TextureRegion> animation;
     private float stateTime = 0;
-    private CelestialBody orbitedBody;
+    private CelestialBodyActor orbitedBody;
     private float distanceToOrbitedBody;
     private float orbitSpeed;
     private float currentOrbitAngleRadians = 0f; // Tracks the current angle in radians
 
-    public CelestialBody(String name, float radius, Animation<TextureRegion> animation,
-                         CelestialBody orbitedBody, float distanceToOrbitedBody, float orbitSpeed) {
+    public CelestialBodyActor(String name, float radius, Animation<TextureRegion> animation,
+                              CelestialBodyActor orbitedBody, float distanceToOrbitedBody, float orbitSpeed) {
         this.name = name;
         this.radius = radius;
         this.animation = animation;
