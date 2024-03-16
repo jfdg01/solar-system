@@ -3,9 +3,6 @@ package com.kandclay;
 public class Constants {
     public static final float ZOOM_IN_FACTOR = 0.9f;
     public static final float ZOOM_OUT_FACTOR = 1.1f;
-    public static final int PHYSICS_TIME_STEP = 240;
-    public static final int PHYSICS_VELOCITY_ITERATIONS = 6;
-    public static final int PHYSICS_POSITION_ITERATIONS = 2;
     public static final float VIEWPORT_WIDTH_PIXELS_INIT = 400;
     public static final float VIEWPORT_HEIGHT_PIXELS_INIT = 300;
     public static final float CAMERA_MOVE_SPEED = 400f;
@@ -15,7 +12,7 @@ public class Constants {
     public static final int ANIMATION_NUM_ROWS = 28;
     public static final int ANIMATION_NUM_COLS = 28;
     public static final float FRAME_DURATION = 5f / 100f;
-    public static final float SPEED = 50f;
+    public static final float SPEED = 5f;
 
     // Radius in pixels
     public static final float SUN_RADIUS_PIXELS = 100;

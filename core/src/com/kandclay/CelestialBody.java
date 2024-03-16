@@ -19,7 +19,7 @@ public class CelestialBody extends Actor {
     private CelestialBody orbitedBody;
     private float distanceToOrbitedBody;
     private float orbitSpeed;
-
+    private float currentOrbitAngleRadians = 0f; // Tracks the current angle in radians
 
     public CelestialBody(String name, float radius, Animation<TextureRegion> animation,
                          CelestialBody orbitedBody, float distanceToOrbitedBody, float orbitSpeed) {
@@ -39,13 +39,30 @@ public class CelestialBody extends Actor {
         super.act(delta);
         stateTime += delta;
 
-        // Orbit logic could be implemented here if desired, affecting the position.
         updateOrbit(delta);
     }
 
     private void updateOrbit(float delta) {
-        // Implement logic to update the position of the celestial body based on its orbit
-        // This is a placeholder for custom orbit logic.
+        if (orbitedBody != null) {
+            // Assuming orbitSpeed is in degrees per second, convert it to radians per second first
+            float orbitSpeedRadiansPerSecond = MathUtils.degreesToRadians * orbitSpeed;
+
+            // Update the current angle based on the orbit speed and elapsed time
+            currentOrbitAngleRadians += orbitSpeedRadiansPerSecond * delta;
+
+            // Ensure the angle wraps correctly by keeping it within 0 to 2*PI radians
+            currentOrbitAngleRadians %= MathUtils.PI2;
+
+            // Calculate new position using the current orbit angle
+            float centerX = orbitedBody.getX() + orbitedBody.getWidth() / 2;
+            float centerY = orbitedBody.getY() + orbitedBody.getHeight() / 2;
+
+            float newX = centerX + MathUtils.cos(currentOrbitAngleRadians) * distanceToOrbitedBody - getWidth() / 2;
+            float newY = centerY + MathUtils.sin(currentOrbitAngleRadians) * distanceToOrbitedBody - getHeight() / 2;
+
+            // Update the position of the celestial body
+            setPosition(newX, newY);
+        }
     }
 
     @Override
@@ -62,31 +79,6 @@ public class CelestialBody extends Actor {
                 System.out.println(name + " clicked!");
             }
         });
-    }
-
-
-    public float getOrbitSpeed() {
-        return orbitSpeed;
-    }
-
-    public float getRadius() {
-        return radius;
-    }
-
-    public void setRadius(float radius) {
-        this.radius = radius;
-    }
-
-    public void setOrbitSpeed(float orbitSpeed) {
-        this.orbitSpeed = orbitSpeed;
-    }
-
-    public Animation<TextureRegion> getAnimation() {
-        return animation;
-    }
-
-    public void setAnimation(Animation<TextureRegion> animation) {
-        this.animation = animation;
     }
 }
 

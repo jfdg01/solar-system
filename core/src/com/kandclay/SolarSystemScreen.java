@@ -18,7 +18,6 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import static com.kandclay.Constants.*;
 
 public class SolarSystemScreen implements Screen {
-
     private final SolarSystemGame game;
     private final AssetManager assetManager;
     private CameraController cameraController;
@@ -26,7 +25,6 @@ public class SolarSystemScreen implements Screen {
     private ExtendViewport worldViewport;
     private OrthographicCamera worldCamera;
     private Batch spriteBatch;
-    private float stateTime = 0;
     private final Array<CelestialBody> celestialBodies;
     String backgroundPath;
 
@@ -81,13 +79,13 @@ public class SolarSystemScreen implements Screen {
     private void setupInputProcessors() {
         InputMultiplexer multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(cameraController);
+        multiplexer.addProcessor(worldStage);
         // Add other input processors as needed
         Gdx.input.setInputProcessor(multiplexer);
     }
 
     private void createSolarSystem() {
         CelestialBody sun = createSun();
-        SUN = celestialBodies.indexOf(sun, true);
 
         CelestialBody mercury = createPlanet(MERCURY_DISTANCE_TO_SUN_PIXELS, MERCURY_RADIUS_PIXELS, MERCURY_ORBIT_SPEED, "mercury");
         MERCURY = celestialBodies.indexOf(mercury, true);
@@ -134,6 +132,7 @@ public class SolarSystemScreen implements Screen {
         return sun;
     }
 
+    // Reduce visual clutter
     private CelestialBody createPlanet(float distanceToOrbitedBody, float radiusPixels,
                                      float orbitSpeed, String texturePathSuffix) {
         return createPlanet(distanceToOrbitedBody, radiusPixels, orbitSpeed, texturePathSuffix, celestialBodies.get(SUN), 1.0f);
@@ -220,7 +219,7 @@ public class SolarSystemScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        stateTime += delta;
+
         clearScreen();
 
         updateWorldStage(delta);

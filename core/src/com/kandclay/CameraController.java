@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import static com.kandclay.Constants.*;
 
 public class CameraController extends InputAdapter {
-    private OrthographicCamera camera;
+    private final OrthographicCamera camera;
     private Viewport viewport;
     private boolean upPressed = false;
     private boolean downPressed = false;
