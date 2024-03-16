@@ -10,6 +10,7 @@ public class DesktopLauncher {
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
 		config.setForegroundFPS(240);
 		config.setTitle("SolarSystem");
+		config.setMaximized(true);
 		new Lwjgl3Application(new SolarSystemGame(), config);
 	}
 }

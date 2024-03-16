@@ -18,7 +18,7 @@ public class Constants {
     public static final float SPEED = 50f;
 
     // Radius in pixels
-    public static final float SUN_RADIUS_PIXELS = 200;
+    public static final float SUN_RADIUS_PIXELS = 100;
     public static final float MERCURY_RADIUS_PIXELS = 8; // Smaller than Earth
     public static final float VENUS_RADIUS_PIXELS = 15; // Slightly smaller than Earth
     public static final float EARTH_RADIUS_PIXELS = 16; // Original value

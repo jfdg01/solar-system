@@ -10,8 +10,6 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
-import static com.kandclay.Constants.*;
-
 public class CelestialBody extends Actor {
 
     public String name;
@@ -45,7 +43,7 @@ public class CelestialBody extends Actor {
     }
 
     public void addClickListener() {
-        System.out.printf("Adding click listener to " + this.name + "\n");
+        // System.out.printf("Adding click listener to " + this.name + "\n");
         this.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -100,14 +98,8 @@ public class CelestialBody extends Actor {
 
         // Calculate the drawing parameters.
         Vector2 position = this.body.getPosition();
-        float scalePixels = this.radius * scaleFactor;
-        float scale = scalePixels > 0 ? (scalePixels * 2) / currentRegion.getRegionWidth() : 1;
-        float screenX = position.x - currentRegion.getRegionWidth() / 2f;
-        float screenY = position.y - currentRegion.getRegionHeight() / 2f;
-        float rotation = MathUtils.radiansToDegrees * this.body.getAngle();
-
-        spriteBatch.draw(currentRegion, screenX, screenY, currentRegion.getRegionWidth() / 2f, currentRegion.getRegionHeight() / 2f,
-                currentRegion.getRegionWidth(), currentRegion.getRegionHeight(), scale, scale, rotation);
+        float radiusScaled = this.radius * scaleFactor;
+        drawScaled(currentRegion, position, radiusScaled);
     }
 
     public void draw(float stateTime) {
@@ -116,8 +108,11 @@ public class CelestialBody extends Actor {
 
         // Calculate the drawing parameters.
         Vector2 position = this.body.getPosition();
-        float scalePixels = this.radius;
-        float scale = scalePixels > 0 ? (scalePixels * 2) / currentRegion.getRegionWidth() : 1;
+        drawScaled(currentRegion, position, this.radius);
+    }
+
+    private void drawScaled(TextureRegion currentRegion, Vector2 position, float scalePixels) {
+        float scale = (scalePixels * 2) / currentRegion.getRegionWidth();
         float screenX = position.x - currentRegion.getRegionWidth() / 2f;
         float screenY = position.y - currentRegion.getRegionHeight() / 2f;
         float rotation = MathUtils.radiansToDegrees * this.body.getAngle();
@@ -125,7 +120,6 @@ public class CelestialBody extends Actor {
         spriteBatch.draw(currentRegion, screenX, screenY, currentRegion.getRegionWidth() / 2f, currentRegion.getRegionHeight() / 2f,
                 currentRegion.getRegionWidth(), currentRegion.getRegionHeight(), scale, scale, rotation);
     }
-
 
     public float getOrbitSpeed() {
         return orbitSpeed;
@@ -170,9 +164,6 @@ public class CelestialBody extends Actor {
                 ", orbitSpeed=" + orbitSpeed +
                 ", distanceToAnchorBody=" + distanceToAnchorBody +
                 '}';
-    }
-
-    public void addListener(ClickListener clickListener) {
     }
 }
 
