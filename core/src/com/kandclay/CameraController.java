@@ -78,16 +78,16 @@ public class CameraController extends InputAdapter {
                 rightPressed = false;
                 break;
             case Keys.NUM_1:
-                num = SUN;
+                num = 0;
                 break;
             case Keys.NUM_2:
-                num = EARTH;
+                num = 1;
                 break;
             case Keys.NUM_3:
-                num = MOON;
+                num = 2;
                 break;
             case Keys.NUM_4:
-                num = SATURN;
+                num = 3;
                 break;
             case Keys.NUM_5:
                 setTargetBody(null); // Free mode
@@ -111,7 +111,7 @@ public class CameraController extends InputAdapter {
 
     private void updateOrbits() {
         for (CelestialBodyActor body : celestialBodies) {
-            body.switchOrbitType();
+            body.toggleOrbitShape();
         }
     }
 

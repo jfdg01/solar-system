@@ -78,7 +78,7 @@ public class SolarSystemScreen implements Screen {
         worldCamera = new OrthographicCamera();
         worldViewport = new ExtendViewport(Constants.Camera.VIEWPORT_WIDTH_PIXELS_INIT, Constants.Camera.VIEWPORT_HEIGHT_PIXELS_INIT, worldCamera);
         worldViewport.setScaling(Scaling.contain);
-        cameraController = new CameraController(worldCamera, worldViewport, Constants.Camera.MOVE_SPEED, Constants.Camera.ZOOM_IN_FACTOR, Constants.Camera.ZOOM_OUT_FACTOR, this.getCelestialBodies());
+        cameraController = new CameraController(worldCamera, Constants.Camera.MOVE_SPEED, Constants.Camera.ZOOM_IN_FACTOR, Constants.Camera.ZOOM_OUT_FACTOR, this.getCelestialBodies());
     }
 
     private void initializeStage() {

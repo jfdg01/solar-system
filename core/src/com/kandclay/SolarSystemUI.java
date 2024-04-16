@@ -40,7 +40,7 @@ public class SolarSystemUI {
         orbitAngleSlider = new Slider(0, 1, 0.01f, false, skin);
         orbitAngleSlider.setValue(1f);
         orbitAngleSlider.setSize(200, 20);
-        orbitAngleSlider.setPosition(0, Gdx.graphics.getHeight() - orbitAngleSlider.getHeight());
+        orbitAngleSlider.setPosition(uiViewport.getWorldWidth() - orbitAngleSlider.getWidth(), uiViewport.getWorldHeight() - orbitAngleSlider.getHeight());
         orbitAngleSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -56,7 +56,7 @@ public class SolarSystemUI {
         speedSlider = new Slider(0, 10, 0.1f, false, skin);
         speedSlider.setValue(1f);
         speedSlider.setSize(200, 20);
-        speedSlider.setPosition(0, orbitAngleSlider.getY() - speedSlider.getHeight() - 10);
+        speedSlider.setPosition(uiViewport.getWorldWidth() - speedSlider.getWidth(), orbitAngleSlider.getY() - speedSlider.getHeight() - 10);
         speedSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -108,5 +108,7 @@ public class SolarSystemUI {
 
     public void update(int width, int height, boolean b) {
         uiViewport.update(width, height, b);
+        orbitAngleSlider.setPosition(uiViewport.getWorldWidth() - orbitAngleSlider.getWidth(), uiViewport.getWorldHeight() - orbitAngleSlider.getHeight());
+        speedSlider.setPosition(uiViewport.getWorldWidth() - speedSlider.getWidth(), orbitAngleSlider.getY() - speedSlider.getHeight() - 10);
     }
 }
