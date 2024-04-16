@@ -1,3 +1,4 @@
+// SolarSystemScreen.java
 package com.kandclay;
 
 import com.badlogic.gdx.Gdx;
@@ -7,9 +8,6 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -18,8 +16,6 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
-import static com.kandclay.Constants.*;
-
 public class SolarSystemScreen implements Screen {
     private final SolarSystemGame game;
     private final AssetManager assetManager;
@@ -27,15 +23,11 @@ public class SolarSystemScreen implements Screen {
     private Stage worldStage;
     private ExtendViewport worldViewport;
     private OrthographicCamera worldCamera;
-    private Batch spriteBatch;
     private final Array<CelestialBodyActor> celestialBodies;
-    String backgroundPath;
     private Group planetGroup;
     private Skin skin;
     private SolarSystemUI solarSystemUI;
-    private String skinPath;
     private CelestialBodyFactory celestialBodyFactory;
-
 
     public SolarSystemScreen(SolarSystemGame game, AssetManager assetManager) {
         this.game = game;
@@ -48,10 +40,11 @@ public class SolarSystemScreen implements Screen {
     }
 
     private void loadAssets() {
-        backgroundPath = "sprites/static/backgroundSimple.png";
-        skinPath = "skin/default/skin/uiskin.json";
+        String backgroundPath = "sprites/static/backgroundSimple.png";
+        String skinPath = "skin/default/skin/uiskin.json";
 
         assetManager.load(backgroundPath, Texture.class);
+        // SolarSystemScreen.java (continued)
         assetManager.load(skinPath, Skin.class);
         assetManager.load("sprites/anim/earth.png", Texture.class);
         assetManager.load("sprites/anim/saturn.png", Texture.class);
@@ -73,7 +66,7 @@ public class SolarSystemScreen implements Screen {
         initializeCameraAndViewport();
         initializeStage();
         initializeBackground();
-        skin = assetManager.get(skinPath);
+        skin = assetManager.get("skin/default/skin/uiskin.json", Skin.class);
         solarSystemUI = new SolarSystemUI(skin, celestialBodies);
         solarSystemUI.initializeUI();
 
@@ -83,26 +76,22 @@ public class SolarSystemScreen implements Screen {
 
     private void initializeCameraAndViewport() {
         worldCamera = new OrthographicCamera();
-        worldViewport = new ExtendViewport(VIEWPORT_WIDTH_PIXELS_INIT, VIEWPORT_HEIGHT_PIXELS_INIT, worldCamera);
+        worldViewport = new ExtendViewport(Constants.Camera.VIEWPORT_WIDTH_PIXELS_INIT, Constants.Camera.VIEWPORT_HEIGHT_PIXELS_INIT, worldCamera);
         worldViewport.setScaling(Scaling.contain);
-        cameraController = new CameraController(worldCamera, CAMERA_MOVE_SPEED, ZOOM_IN_FACTOR, ZOOM_OUT_FACTOR, this.getCelestialBodies());
+        cameraController = new CameraController(worldCamera, worldViewport, Constants.Camera.MOVE_SPEED, Constants.Camera.ZOOM_IN_FACTOR, Constants.Camera.ZOOM_OUT_FACTOR, this.getCelestialBodies());
     }
 
     private void initializeStage() {
         worldStage = new Stage(worldViewport);
-        spriteBatch = worldStage.getBatch();
     }
 
     private void initializeBackground() {
-        Texture backgroundTexture = assetManager.get(backgroundPath, Texture.class);
+        Texture backgroundTexture = assetManager.get("sprites/static/backgroundSimple.png", Texture.class);
 
         Background backgroundActor = new Background(backgroundTexture, worldCamera);
 
         backgroundActor.setSize(worldViewport.getWorldWidth(), worldViewport.getWorldHeight());
-
         backgroundActor.setPosition(0, 0);
-
-        // Set lowest Zindex
         backgroundActor.toBack();
 
         worldStage.addActor(backgroundActor);
@@ -113,53 +102,49 @@ public class SolarSystemScreen implements Screen {
         multiplexer.addProcessor(cameraController);
         multiplexer.addProcessor(worldStage);
         multiplexer.addProcessor(solarSystemUI.getUiStage());
-        // Add other input processors as needed
         Gdx.input.setInputProcessor(multiplexer);
     }
 
     private void createSolarSystem() {
         CelestialBodyActor sun = celestialBodyFactory.createSun();
 
-        CelestialBodyActor mercury = celestialBodyFactory.createPlanet(MERCURY_DISTANCE_TO_SUN_PIXELS, MERCURY_RADIUS_PIXELS, MERCURY_ORBIT_SPEED, "mercury");
-        MERCURY = celestialBodies.indexOf(mercury, true);
-        CelestialBodyActor venus = celestialBodyFactory.createPlanet(VENUS_DISTANCE_TO_SUN_PIXELS, VENUS_RADIUS_PIXELS, VENUS_ORBIT_SPEED, "venus");
-        VENUS = celestialBodies.indexOf(venus, true);
-        CelestialBodyActor earth = celestialBodyFactory.createPlanet(EARTH_DISTANCE_TO_SUN_PIXELS, EARTH_RADIUS_PIXELS, EARTH_ORBIT_SPEED, "earth");
-        EARTH = celestialBodies.indexOf(earth, true);
-        // Moon orbiting Earth
-        CelestialBodyActor moon = celestialBodyFactory.createPlanet(MOON_DISTANCE_TO_EARTH_PIXELS, MOON_RADIUS_PIXELS, MOON_ORBIT_SPEED, "moon", earth);
-        MOON = celestialBodies.indexOf(moon, true);
-        CelestialBodyActor mars = celestialBodyFactory.createPlanet(MARS_DISTANCE_TO_SUN_PIXELS, MARS_RADIUS_PIXELS, MARS_ORBIT_SPEED, "mars");
-        MARS = celestialBodies.indexOf(mars, true);
-        CelestialBodyActor jupiter = celestialBodyFactory.createPlanet(JUPITER_DISTANCE_TO_SUN_PIXELS, JUPITER_RADIUS_PIXELS, JUPITER_ORBIT_SPEED, "jupiter");
-        JUPITER = celestialBodies.indexOf(jupiter, true);
-        CelestialBodyActor saturn = celestialBodyFactory.createPlanet(SATURN_DISTANCE_TO_SUN_PIXELS, SATURN_RADIUS_PIXELS, SATURN_ORBIT_SPEED, "saturn", sun);
-        SATURN = celestialBodies.indexOf(saturn, true);
-        CelestialBodyActor uranus = celestialBodyFactory.createPlanet(URANUS_DISTANCE_TO_SUN_PIXELS, URANUS_RADIUS_PIXELS, URANUS_ORBIT_SPEED, "uranus");
-        URANUS = celestialBodies.indexOf(uranus, true);
-        CelestialBodyActor neptune = celestialBodyFactory.createPlanet(NEPTUNE_DISTANCE_TO_SUN_PIXELS, NEPTUNE_RADIUS_PIXELS, NEPTUNE_ORBIT_SPEED, "neptune");
-        NEPTUNE = celestialBodies.indexOf(neptune, true);
+        CelestialBodyActor mercury = celestialBodyFactory.createPlanet(Constants.Distance.MERCURY_TO_SUN_PIXELS, Constants.Radius.MERCURY_PIXELS, Constants.OrbitSpeed.MERCURY, "mercury");
+        Constants.CelestialBody.MERCURY.ordinal();
+        CelestialBodyActor venus = celestialBodyFactory.createPlanet(Constants.Distance.VENUS_TO_SUN_PIXELS, Constants.Radius.VENUS_PIXELS, Constants.OrbitSpeed.VENUS, "venus");
+        Constants.CelestialBody.VENUS.ordinal();
+        CelestialBodyActor earth = celestialBodyFactory.createPlanet(Constants.Distance.EARTH_TO_SUN_PIXELS, Constants.Radius.EARTH_PIXELS, Constants.OrbitSpeed.EARTH, "earth");
+        Constants.CelestialBody.EARTH.ordinal();
+        CelestialBodyActor moon = celestialBodyFactory.createPlanet(Constants.Distance.MOON_TO_EARTH_PIXELS, Constants.Radius.MOON_PIXELS, Constants.OrbitSpeed.MOON, "moon", earth);
+        Constants.CelestialBody.MOON.ordinal();
+        CelestialBodyActor mars = celestialBodyFactory.createPlanet(Constants.Distance.MARS_TO_SUN_PIXELS, Constants.Radius.MARS_PIXELS, Constants.OrbitSpeed.MARS, "mars");
+        Constants.CelestialBody.MARS.ordinal();
+        CelestialBodyActor jupiter = celestialBodyFactory.createPlanet(Constants.Distance.JUPITER_TO_SUN_PIXELS, Constants.Radius.JUPITER_PIXELS, Constants.OrbitSpeed.JUPITER, "jupiter");
+        Constants.CelestialBody.JUPITER.ordinal();
+        CelestialBodyActor saturn = celestialBodyFactory.createPlanet(Constants.Distance.SATURN_TO_SUN_PIXELS, Constants.Radius.SATURN_PIXELS, Constants.OrbitSpeed.SATURN, "saturn", sun);
+        Constants.CelestialBody.SATURN.ordinal();
+        CelestialBodyActor uranus = celestialBodyFactory.createPlanet(Constants.Distance.URANUS_TO_SUN_PIXELS, Constants.Radius.URANUS_PIXELS, Constants.OrbitSpeed.URANUS, "uranus");
+        Constants.CelestialBody.URANUS.ordinal();
+        CelestialBodyActor neptune = celestialBodyFactory.createPlanet(Constants.Distance.NEPTUNE_TO_SUN_PIXELS, Constants.Radius.NEPTUNE_PIXELS, Constants.OrbitSpeed.NEPTUNE, "neptune");
+        Constants.CelestialBody.NEPTUNE.ordinal();
 
         worldStage.addActor(planetGroup);
     }
 
     @Override
     public void render(float delta) {
-
         clearScreen();
 
         solarSystemUI.getUiStage().act(delta);
         updateWorldStage(delta);
         cameraController.update(delta);
 
-        worldStage.draw(); // First draw the world stage
-        solarSystemUI.getUiStage().draw(); // Then draw the UI on top
+        worldStage.draw();
+        solarSystemUI.getUiStage().draw();
     }
 
     private void clearScreen() {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
     }
-
 
     private void updateWorldStage(float delta) {
         worldStage.act(delta);

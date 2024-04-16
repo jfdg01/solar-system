@@ -23,10 +23,10 @@ public class CelestialBodyActor extends Actor {
     private float orbitSpeed;
     private float orbitSpeedRadiansPerSecond;
     private boolean isCircularOrbit = true;
-    private float currentOrbitAngleRadians = 0f; // Tracks the current orbital position in radians (0 to 2*PI)
-    private float ellipseAxisRatio = 1f; // Current axis ratio (big side of the ellipse)
-    private float targetEllipseAxisRatio = 1f; // Target axis ratio for interpolation (small side of the ellipse)
-    private float axisRatioInterpolationSpeed = 0.01f; // Speed of interpolation
+    private float currentOrbitAngleRadians = 0f;
+    private float ellipseAxisRatio = 1f;
+    private float targetEllipseAxisRatio = 1f;
+    private float axisRatioInterpolationSpeed = 0.01f;
     private Group parent;
 
     public CelestialBodyActor(String name, float radius, Animation<TextureRegion> animation,
@@ -41,7 +41,7 @@ public class CelestialBodyActor extends Actor {
         this.orbitSpeedRadiansPerSecond = MathUtils.degreesToRadians * orbitSpeed;
         this.parent = this.getParent();
 
-        setSize(radius * 2, radius * 2); // Assumes the texture's width and height represent the full diameter.
+        setSize(radius * 2, radius * 2);
         addClickListener();
     }
 
@@ -50,57 +50,47 @@ public class CelestialBodyActor extends Actor {
         super.act(delta);
         stateTime += delta;
 
+        updateEllipseAxisRatio(delta);
+        updateOrbitPosition(delta);
+    }
+
+    private void updateEllipseAxisRatio(float delta) {
         if (Math.abs(targetEllipseAxisRatio - ellipseAxisRatio) > 0.01f) {
             ellipseAxisRatio += (targetEllipseAxisRatio - ellipseAxisRatio) * axisRatioInterpolationSpeed;
         }
-
-        updateOrbitPosition(delta, ellipseAxisRatio);
     }
 
-    public void switchOrbitType() {
-        isCircularOrbit = !isCircularOrbit;
-    }
-
-    private void updateOrbitPosition(float delta, float axisRatio) {
-
+    private void updateOrbitPosition(float delta) {
         if (Objects.equals(name, "sun")) {
             return;
         }
 
-        // Update the current angle based on the orbit speed and elapsed time
         currentOrbitAngleRadians += orbitSpeedRadiansPerSecond * delta;
+        currentOrbitAngleRadians %= MathUtils.PI2;
 
-        // Ensure the angle wraps correctly by keeping it within 0 to 2*PI radians
-        if (currentOrbitAngleRadians >= MathUtils.PI2) {
-            currentOrbitAngleRadians %= MathUtils.PI2;
-        }
-
-        // Calculate new position using the current orbit angle
         float centerX = orbitedBody.getX() + orbitedBody.getWidth() / 2;
         float centerY = orbitedBody.getY() + orbitedBody.getHeight() / 2;
 
-        // Semi-major axis and semi-minor axis
-        float semiMajorAxis = distanceToOrbitedBody; // Maximum distance to orbited body
-        float semiMinorAxis = distanceToOrbitedBody * axisRatio; // axisRatio of the maximum distance
+        float semiMajorAxis = distanceToOrbitedBody;
+        float semiMinorAxis = distanceToOrbitedBody * ellipseAxisRatio;
 
         float newOrbitX = centerX + semiMajorAxis * MathUtils.cos(currentOrbitAngleRadians) - getWidth() / 2;
         float newOrbitY = centerY + semiMinorAxis * MathUtils.sin(currentOrbitAngleRadians) - getHeight() / 2;
 
-        // Update the position of the celestial body
         setPosition(newOrbitX, newOrbitY);
 
-        // Adjust the scale based on the current orbit angle
-        float scale = 2 - (0.5f + (1 + MathUtils.sin(currentOrbitAngleRadians)) / 2); // Subtract the current scale from 2 to invert the scaling effect
+        float scale = 2 - (0.5f + (1 + MathUtils.sin(currentOrbitAngleRadians)) / 2);
         setScale(scale);
 
-        // If in the second half of the orbit, set the Z position to be in front
         if (currentOrbitAngleRadians > MathUtils.PI) {
-            // Set the Z position to be the first
             toFront();
         } else {
-            // Set the Z position to be the last
             toBack();
         }
+    }
+
+    public void toggleOrbitShape() {
+        isCircularOrbit = !isCircularOrbit;
     }
 
     @Override
@@ -113,7 +103,6 @@ public class CelestialBodyActor extends Actor {
         this.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                // Handle click event. This could be used to select the celestial body or display information about it.
                 System.out.println(name + " clicked!");
             }
         });
@@ -139,4 +128,3 @@ public class CelestialBodyActor extends Actor {
         this.orbitSpeedRadiansPerSecond = MathUtils.degreesToRadians * orbitSpeed;
     }
 }
-

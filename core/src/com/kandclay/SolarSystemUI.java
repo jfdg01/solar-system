@@ -1,3 +1,4 @@
+// SolarSystemUI.java
 package com.kandclay;
 
 import com.badlogic.gdx.Gdx;
@@ -18,11 +19,7 @@ public class SolarSystemUI {
     private Skin skin;
     private Slider orbitAngleSlider;
     private Slider speedSlider;
-    private TextButton speed05xButton;
-    private TextButton speed1xButton;
-    private TextButton speed2xButton;
-    private TextButton speed5xButton;
-    private TextButton speed10xButton;
+    private TextButton[] speedButtons;
     private Stage uiStage;
     private ScreenViewport uiViewport;
     private Array<CelestialBodyActor> celestialBodies;
@@ -30,23 +27,19 @@ public class SolarSystemUI {
     public SolarSystemUI(Skin skin, Array<CelestialBodyActor> celestialBodies) {
         this.skin = skin;
         this.celestialBodies = celestialBodies;
-        initializeUI();
     }
 
     public void initializeUI() {
         uiViewport = new ScreenViewport();
         uiStage = new Stage(uiViewport);
-        initializeOrbitalPlaneSlider();
-        initializeSpeedSlider();
+        initializeSliders();
         initializeSpeedButtons();
     }
 
-    private void initializeOrbitalPlaneSlider() {
+    private void initializeSliders() {
         orbitAngleSlider = new Slider(0, 1, 0.01f, false, skin);
         orbitAngleSlider.setValue(1f);
-        // Height seems to be not taken into account
         orbitAngleSlider.setSize(200, 20);
-        // Position the slider at the top left corner of the screen
         orbitAngleSlider.setPosition(0, Gdx.graphics.getHeight() - orbitAngleSlider.getHeight());
         orbitAngleSlider.addListener(new ChangeListener() {
             @Override
@@ -59,13 +52,11 @@ public class SolarSystemUI {
         });
 
         uiStage.addActor(orbitAngleSlider);
-    }
 
-    private void initializeSpeedSlider() {
         speedSlider = new Slider(0, 10, 0.1f, false, skin);
         speedSlider.setValue(1f);
         speedSlider.setSize(200, 20);
-        speedSlider.setPosition(0, orbitAngleSlider.getY() - speedSlider.getHeight() - 10); // 10 is the gap between the two sliders
+        speedSlider.setPosition(0, orbitAngleSlider.getY() - speedSlider.getHeight() - 10);
         speedSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -81,22 +72,17 @@ public class SolarSystemUI {
     }
 
     private void initializeSpeedButtons() {
-        speed05xButton = new TextButton("0.5x", skin);
-        speed1xButton = new TextButton("1x", skin);
-        speed2xButton = new TextButton("2x", skin);
-        speed5xButton = new TextButton("5x", skin);
-        speed10xButton = new TextButton("10x", skin);
-
-        TextButton[] buttons = {speed05xButton, speed1xButton, speed2xButton, speed5xButton, speed10xButton};
         float[] speeds = {0.5f, 1f, 2f, 5f, 10f};
+        speedButtons = new TextButton[speeds.length];
 
-        for (int i = 0; i < buttons.length; i++) {
-            TextButton button = buttons[i];
-            float speed = speeds[i];
+        for (int i = 0; i < speeds.length; i++) {
+            TextButton button = new TextButton(String.valueOf(speeds[i]), skin);
+            speedButtons[i] = button;
 
             button.setSize(100, 30);
-            button.setPosition(i * (button.getWidth() + 10), 0); // 10 is the gap between the buttons
+            button.setPosition(i * (button.getWidth() + 10), 0);
 
+            float speed = speeds[i];
             button.addListener(new ClickListener() {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
