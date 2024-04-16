@@ -4,7 +4,6 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.viewport.Viewport;
 
 import static com.kandclay.Constants.*;
 
@@ -62,6 +61,9 @@ public class CameraController extends InputAdapter {
 
     @Override
     public boolean keyUp(int keycode) {
+
+        int num = -1;
+
         switch (keycode) {
             case Keys.W:
                 upPressed = false;
@@ -76,16 +78,16 @@ public class CameraController extends InputAdapter {
                 rightPressed = false;
                 break;
             case Keys.NUM_1:
-                setTargetBody(celestialBodies.get(SUN)); // Track Sun
+                num = SUN;
                 break;
             case Keys.NUM_2:
-                setTargetBody(celestialBodies.get(EARTH)); // Track Earth
+                num = EARTH;
                 break;
             case Keys.NUM_3:
-                setTargetBody(celestialBodies.get(MOON)); // Track Moon
+                num = MOON;
                 break;
             case Keys.NUM_4:
-                setTargetBody(celestialBodies.get(SATURN)); // Track Saturn
+                num = SATURN;
                 break;
             case Keys.NUM_5:
                 setTargetBody(null); // Free mode
@@ -96,8 +98,21 @@ public class CameraController extends InputAdapter {
             case Keys.RIGHT:
                 selectNextBody();
                 break;
+            case Keys.G:
+                updateOrbits();
+                break;
         }
+        if (num >= 0) {
+            setTargetBody(celestialBodies.get(num));
+        }
+
         return false;
+    }
+
+    private void updateOrbits() {
+        for (CelestialBodyActor body : celestialBodies) {
+            body.switchOrbitType();
+        }
     }
 
     public void setTargetBody(CelestialBodyActor targetBody) {

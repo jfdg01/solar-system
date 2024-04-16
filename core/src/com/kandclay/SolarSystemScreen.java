@@ -11,7 +11,11 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
@@ -28,11 +32,13 @@ public class SolarSystemScreen implements Screen {
     private Batch spriteBatch;
     private final Array<CelestialBodyActor> celestialBodies;
     String backgroundPath;
+    private Group planetGroup;
 
     public SolarSystemScreen(SolarSystemGame game) {
         this.game = game;
         this.assetManager = new AssetManager();
         celestialBodies = new Array<CelestialBodyActor>();
+        planetGroup = new Group();
 
         loadAssets();
     }
@@ -81,15 +87,16 @@ public class SolarSystemScreen implements Screen {
     private void initializeBackground() {
         Texture backgroundTexture = assetManager.get(backgroundPath, Texture.class);
 
-        BackgroundActor backgroundActor = new BackgroundActor(backgroundTexture, worldCamera);
+        Background backgroundActor = new Background(backgroundTexture, worldCamera);
 
         backgroundActor.setSize(worldViewport.getWorldWidth(), worldViewport.getWorldHeight());
 
         backgroundActor.setPosition(0, 0);
+        // Set lowest Zindex
+        backgroundActor.toBack();
 
         worldStage.addActor(backgroundActor);
     }
-
 
     private void setupInputProcessors() {
         InputMultiplexer multiplexer = new InputMultiplexer();
@@ -121,8 +128,9 @@ public class SolarSystemScreen implements Screen {
         URANUS = celestialBodies.indexOf(uranus, true);
         CelestialBodyActor neptune = createPlanet(NEPTUNE_DISTANCE_TO_SUN_PIXELS, NEPTUNE_RADIUS_PIXELS, NEPTUNE_ORBIT_SPEED, "neptune");
         NEPTUNE = celestialBodies.indexOf(neptune, true);
-    }
 
+        worldStage.addActor(planetGroup);
+    }
 
     private CelestialBodyActor createSun() {
         float sunRadius = SUN_RADIUS_PIXELS;
@@ -135,8 +143,8 @@ public class SolarSystemScreen implements Screen {
         CelestialBodyActor sun = new CelestialBodyActor("sun", sunRadius, sunAnimation, null, 0, 0);
 
         sun.setPosition(sunX, sunY);
-        worldStage.addActor(sun);
-
+        planetGroup.addActor(sun);
+        sun.setZIndex(2);
         celestialBodies.add(sun);
         SUN = celestialBodies.indexOf(sun, true);
 
@@ -168,7 +176,7 @@ public class SolarSystemScreen implements Screen {
         planet.setPosition(planetX, planetY);
 
         // Add the planet to the stage and celestial bodies list
-        worldStage.addActor(planet);
+        planetGroup.addActor(planet);
         celestialBodies.add(planet);
 
         return planet;
@@ -212,8 +220,8 @@ public class SolarSystemScreen implements Screen {
 
 
     private void updateWorldStage(float delta) {
-        worldCamera.update();
         worldStage.act(delta);
+        worldCamera.update();
     }
 
     @Override
@@ -221,7 +229,7 @@ public class SolarSystemScreen implements Screen {
         worldViewport.update(width, height);
 
         Actor backgroundActor = worldStage.getActors().first();
-        if (backgroundActor instanceof BackgroundActor) {
+        if (backgroundActor instanceof Background) {
             backgroundActor.setSize(worldViewport.getWorldWidth(), worldViewport.getWorldHeight());
         }
     }

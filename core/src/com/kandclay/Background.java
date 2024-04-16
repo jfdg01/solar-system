@@ -6,11 +6,11 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 
-public class BackgroundActor extends Actor {
+public class Background extends Actor {
     private Texture backgroundTexture;
     private OrthographicCamera camera;
 
-    public BackgroundActor(Texture backgroundTexture, OrthographicCamera camera) {
+    public Background(Texture backgroundTexture, OrthographicCamera camera) {
         this.backgroundTexture = backgroundTexture;
         this.camera = camera;
         this.backgroundTexture.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
