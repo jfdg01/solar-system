@@ -33,6 +33,7 @@ public class SolarSystemScreen implements Screen {
     private final Array<CelestialBodyActor> celestialBodies;
     String backgroundPath;
     private Group planetGroup;
+    private Skin skin;
 
     public SolarSystemScreen(SolarSystemGame game) {
         this.game = game;
@@ -47,6 +48,7 @@ public class SolarSystemScreen implements Screen {
         backgroundPath = "sprites/static/backgroundSimple.png";
 
         assetManager.load(backgroundPath, Texture.class);
+        assetManager.load("skin/default/skin/uiskin.json", Skin.class);
         assetManager.load("sprites/anim/earth.png", Texture.class);
         assetManager.load("sprites/anim/saturn.png", Texture.class);
         assetManager.load("sprites/anim/moon.png", Texture.class);
@@ -67,6 +69,8 @@ public class SolarSystemScreen implements Screen {
         initializeCameraAndViewport();
         initializeStage();
         initializeBackground();
+
+        skin = assetManager.get("skin/default/skin/uiskin.json");
 
         setupInputProcessors();
         createSolarSystem();
@@ -92,6 +96,7 @@ public class SolarSystemScreen implements Screen {
         backgroundActor.setSize(worldViewport.getWorldWidth(), worldViewport.getWorldHeight());
 
         backgroundActor.setPosition(0, 0);
+
         // Set lowest Zindex
         backgroundActor.toBack();
 
