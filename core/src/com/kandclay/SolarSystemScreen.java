@@ -37,9 +37,9 @@ public class SolarSystemScreen implements Screen {
     private CelestialBodyFactory celestialBodyFactory;
 
 
-    public SolarSystemScreen(SolarSystemGame game) {
+    public SolarSystemScreen(SolarSystemGame game, AssetManager assetManager) {
         this.game = game;
-        this.assetManager = new AssetManager();
+        this.assetManager = assetManager;
         celestialBodies = new Array<>();
         planetGroup = new Group();
         celestialBodyFactory = new CelestialBodyFactory(assetManager, planetGroup, celestialBodies);
