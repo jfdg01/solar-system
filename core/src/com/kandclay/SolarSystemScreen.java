@@ -34,13 +34,15 @@ public class SolarSystemScreen implements Screen {
     private Skin skin;
     private SolarSystemUI solarSystemUI;
     private String skinPath;
+    private CelestialBodyFactory celestialBodyFactory;
 
 
     public SolarSystemScreen(SolarSystemGame game) {
         this.game = game;
         this.assetManager = new AssetManager();
-        celestialBodies = new Array<CelestialBodyActor>();
+        celestialBodies = new Array<>();
         planetGroup = new Group();
+        celestialBodyFactory = new CelestialBodyFactory(assetManager, planetGroup, celestialBodies);
 
         loadAssets();
     }
@@ -116,100 +118,29 @@ public class SolarSystemScreen implements Screen {
     }
 
     private void createSolarSystem() {
-        CelestialBodyActor sun = createSun();
+        CelestialBodyActor sun = celestialBodyFactory.createSun();
 
-        CelestialBodyActor mercury = createPlanet(MERCURY_DISTANCE_TO_SUN_PIXELS, MERCURY_RADIUS_PIXELS, MERCURY_ORBIT_SPEED, "mercury");
+        CelestialBodyActor mercury = celestialBodyFactory.createPlanet(MERCURY_DISTANCE_TO_SUN_PIXELS, MERCURY_RADIUS_PIXELS, MERCURY_ORBIT_SPEED, "mercury");
         MERCURY = celestialBodies.indexOf(mercury, true);
-        CelestialBodyActor venus = createPlanet(VENUS_DISTANCE_TO_SUN_PIXELS, VENUS_RADIUS_PIXELS, VENUS_ORBIT_SPEED, "venus");
+        CelestialBodyActor venus = celestialBodyFactory.createPlanet(VENUS_DISTANCE_TO_SUN_PIXELS, VENUS_RADIUS_PIXELS, VENUS_ORBIT_SPEED, "venus");
         VENUS = celestialBodies.indexOf(venus, true);
-        CelestialBodyActor earth = createPlanet(EARTH_DISTANCE_TO_SUN_PIXELS, EARTH_RADIUS_PIXELS, EARTH_ORBIT_SPEED, "earth");
+        CelestialBodyActor earth = celestialBodyFactory.createPlanet(EARTH_DISTANCE_TO_SUN_PIXELS, EARTH_RADIUS_PIXELS, EARTH_ORBIT_SPEED, "earth");
         EARTH = celestialBodies.indexOf(earth, true);
         // Moon orbiting Earth
-        CelestialBodyActor moon = createPlanet(MOON_DISTANCE_TO_EARTH_PIXELS, MOON_RADIUS_PIXELS, MOON_ORBIT_SPEED, "moon", earth);
+        CelestialBodyActor moon = celestialBodyFactory.createPlanet(MOON_DISTANCE_TO_EARTH_PIXELS, MOON_RADIUS_PIXELS, MOON_ORBIT_SPEED, "moon", earth);
         MOON = celestialBodies.indexOf(moon, true);
-        CelestialBodyActor mars = createPlanet(MARS_DISTANCE_TO_SUN_PIXELS, MARS_RADIUS_PIXELS, MARS_ORBIT_SPEED, "mars");
+        CelestialBodyActor mars = celestialBodyFactory.createPlanet(MARS_DISTANCE_TO_SUN_PIXELS, MARS_RADIUS_PIXELS, MARS_ORBIT_SPEED, "mars");
         MARS = celestialBodies.indexOf(mars, true);
-        CelestialBodyActor jupiter = createPlanet(JUPITER_DISTANCE_TO_SUN_PIXELS, JUPITER_RADIUS_PIXELS, JUPITER_ORBIT_SPEED, "jupiter");
+        CelestialBodyActor jupiter = celestialBodyFactory.createPlanet(JUPITER_DISTANCE_TO_SUN_PIXELS, JUPITER_RADIUS_PIXELS, JUPITER_ORBIT_SPEED, "jupiter");
         JUPITER = celestialBodies.indexOf(jupiter, true);
-        CelestialBodyActor saturn = createPlanet(SATURN_DISTANCE_TO_SUN_PIXELS, SATURN_RADIUS_PIXELS, SATURN_ORBIT_SPEED, "saturn", sun);
+        CelestialBodyActor saturn = celestialBodyFactory.createPlanet(SATURN_DISTANCE_TO_SUN_PIXELS, SATURN_RADIUS_PIXELS, SATURN_ORBIT_SPEED, "saturn", sun);
         SATURN = celestialBodies.indexOf(saturn, true);
-        CelestialBodyActor uranus = createPlanet(URANUS_DISTANCE_TO_SUN_PIXELS, URANUS_RADIUS_PIXELS, URANUS_ORBIT_SPEED, "uranus");
+        CelestialBodyActor uranus = celestialBodyFactory.createPlanet(URANUS_DISTANCE_TO_SUN_PIXELS, URANUS_RADIUS_PIXELS, URANUS_ORBIT_SPEED, "uranus");
         URANUS = celestialBodies.indexOf(uranus, true);
-        CelestialBodyActor neptune = createPlanet(NEPTUNE_DISTANCE_TO_SUN_PIXELS, NEPTUNE_RADIUS_PIXELS, NEPTUNE_ORBIT_SPEED, "neptune");
+        CelestialBodyActor neptune = celestialBodyFactory.createPlanet(NEPTUNE_DISTANCE_TO_SUN_PIXELS, NEPTUNE_RADIUS_PIXELS, NEPTUNE_ORBIT_SPEED, "neptune");
         NEPTUNE = celestialBodies.indexOf(neptune, true);
 
         worldStage.addActor(planetGroup);
-    }
-
-    private CelestialBodyActor createSun() {
-        float sunRadius = SUN_RADIUS_PIXELS;
-        Animation<TextureRegion> sunAnimation = createAnimationFromAssetManager("sun");
-
-        // Calculate the sun's position to be at the center of the screen
-        float sunX = (Gdx.graphics.getWidth() / 2f) - sunRadius; // Center the sun on the screen
-        float sunY = (Gdx.graphics.getHeight() / 2f) - sunRadius; // Center the sun on the screen
-
-        CelestialBodyActor sun = new CelestialBodyActor("sun", sunRadius, sunAnimation, null, 0, 0);
-
-        sun.setPosition(sunX, sunY);
-        planetGroup.addActor(sun);
-        sun.setZIndex(2);
-        celestialBodies.add(sun);
-        SUN = celestialBodies.indexOf(sun, true);
-
-        return sun;
-    }
-
-    // Reduce visual clutter
-    private CelestialBodyActor createPlanet(float distanceToOrbitedBody, float radiusPixels,
-                                            float orbitSpeed, String texturePathSuffix) {
-        return createPlanet(distanceToOrbitedBody, radiusPixels, orbitSpeed, texturePathSuffix, celestialBodies.get(SUN));
-    }
-
-    private CelestialBodyActor createPlanet(float distanceToOrbitedBody, float radiusPixels,
-                                            float orbitSpeed, String texturePathSuffix, CelestialBodyActor orbitedBody) {
-
-        float orbitedBodyX = orbitedBody.getX() + orbitedBody.getWidth() / 2; // Center X of the orbited body
-        float orbitedBodyY = orbitedBody.getY() + orbitedBody.getHeight() / 2; // Center Y of the orbited body
-
-        // For simplicity, initially place the planet right of its orbited body. Adjust as needed for actual orbit.
-        float planetX = orbitedBodyX + distanceToOrbitedBody;
-        float planetY = orbitedBodyY - radiusPixels; // Adjust if you want the initial position differently
-
-        Animation<TextureRegion> animation = createAnimationFromAssetManager(texturePathSuffix);
-
-        // Create the planet CelestialBody without needing Box2D physics parameters
-        CelestialBodyActor planet = new CelestialBodyActor(texturePathSuffix, radiusPixels, animation, orbitedBody, distanceToOrbitedBody, orbitSpeed);
-
-        // Set the planet's position
-        planet.setPosition(planetX, planetY);
-
-        // Add the planet to the stage and celestial bodies list
-        planetGroup.addActor(planet);
-        celestialBodies.add(planet);
-
-        return planet;
-    }
-
-    private Animation<TextureRegion> createAnimationFromAssetManager(String regionName) {
-        String name = "sprites/anim/" + regionName + ".png";
-        Texture texture = assetManager.get(name, Texture.class);
-
-        // Assuming each frame is of equal size, calculate the width and height of each frame
-        int frameWidth = texture.getWidth() / ANIMATION_NUM_COLS;
-        int frameHeight = texture.getHeight() / ANIMATION_NUM_ROWS;
-
-        TextureRegion[][] tmpFrames = TextureRegion.split(texture, frameWidth, frameHeight);
-        TextureRegion[] animationFrames = new TextureRegion[ANIMATION_NUM_ROWS * ANIMATION_NUM_COLS];
-
-        int index = 0;
-        for (int i = 0; i < ANIMATION_NUM_ROWS; i++) {
-            for (int j = 0; j < ANIMATION_NUM_COLS; j++) {
-                animationFrames[index++] = tmpFrames[i][j];
-            }
-        }
-
-        return new Animation<TextureRegion>(FRAME_DURATION, animationFrames);
     }
 
     @Override
