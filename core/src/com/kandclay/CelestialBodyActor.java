@@ -19,6 +19,7 @@ public class CelestialBodyActor extends Actor {
     private float stateTime = 0;
     private CelestialBodyActor orbitedBody;
     private float distanceToOrbitedBody;
+    private final float baseOrbitSpeed;
     private float orbitSpeed;
     private float orbitSpeedRadiansPerSecond;
     private boolean isCircularOrbit = true;
@@ -36,6 +37,7 @@ public class CelestialBodyActor extends Actor {
         this.orbitedBody = orbitedBody;
         this.distanceToOrbitedBody = distanceToOrbitedBody;
         this.orbitSpeed = orbitSpeed;
+        this.baseOrbitSpeed = orbitSpeed;
         this.orbitSpeedRadiansPerSecond = MathUtils.degreesToRadians * orbitSpeed;
         this.parent = this.getParent();
 
@@ -117,12 +119,24 @@ public class CelestialBodyActor extends Actor {
         });
     }
 
-    public float getTargetEllipseAxisRatio() {
-        return targetEllipseAxisRatio;
-    }
-
     public void setTargetEllipseAxisRatio(float targetEllipseAxisRatio) {
         this.targetEllipseAxisRatio = targetEllipseAxisRatio;
+    }
+
+    public float getCurrentOrbitAngleRadians() {
+        return this.currentOrbitAngleRadians;
+    }
+
+    public void setCurrentOrbitAngleRadians(float targetOrbitAngle) {
+        this.currentOrbitAngleRadians = targetOrbitAngle;
+    }
+
+    public float getBaseOrbitSpeed() {
+        return baseOrbitSpeed;
+    }
+
+    public void setOrbitSpeed(float orbitSpeed) {
+        this.orbitSpeedRadiansPerSecond = MathUtils.degreesToRadians * orbitSpeed;
     }
 }
 

@@ -10,16 +10,21 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+
+import java.util.Objects;
 
 import static com.kandclay.Constants.*;
 
@@ -29,6 +34,8 @@ public class SolarSystemScreen implements Screen {
     private CameraController cameraController;
     private Stage worldStage;
     private ExtendViewport worldViewport;
+    private Stage uiStage;
+    private ScreenViewport uiViewport;
     private OrthographicCamera worldCamera;
     private Batch spriteBatch;
     private final Array<CelestialBodyActor> celestialBodies;
@@ -36,6 +43,12 @@ public class SolarSystemScreen implements Screen {
     private Group planetGroup;
     private Skin skin;
     private Slider orbitAngleSlider;
+    private Slider orbitCurrentAngleSlider;
+    private TextButton speed05xButton;
+    private TextButton speed1xButton;
+    private TextButton speed2xButton;
+    private TextButton speed5xButton;
+    private TextButton speed10xButton;
 
     public SolarSystemScreen(SolarSystemGame game) {
         this.game = game;
@@ -72,16 +85,59 @@ public class SolarSystemScreen implements Screen {
         initializeStage();
         initializeBackground();
         skin = assetManager.get("skin/default/skin/uiskin.json");
-
-        initializeSlider();
+        initializeUI();
 
         setupInputProcessors();
         createSolarSystem();
     }
 
-    private void initializeSlider() {
+    private void initializeUI() {
+        uiViewport = new ScreenViewport();
+        uiStage = new Stage(uiViewport, spriteBatch);
+        initializeOrbitalPlaneSlider();
+        initializeOrbitCurrentAngleSlider();
+        initializeSpeedButtons();
+    }
+
+    private void initializeSpeedButtons() {
+        speed05xButton = new TextButton("0.5x", skin);
+        speed1xButton = new TextButton("1x", skin);
+        speed2xButton = new TextButton("2x", skin);
+        speed5xButton = new TextButton("5x", skin);
+        speed10xButton = new TextButton("10x", skin);
+
+        TextButton[] buttons = {speed05xButton, speed1xButton, speed2xButton, speed5xButton, speed10xButton};
+        float[] speeds = {0.5f, 1f, 2f, 5f, 10f};
+
+        for (int i = 0; i < buttons.length; i++) {
+            TextButton button = buttons[i];
+            float speed = speeds[i];
+
+            button.setSize(100, 30);
+            button.setPosition(i * (button.getWidth() + 10), 0); // 10 is the gap between the buttons
+
+            button.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    for (CelestialBodyActor body : celestialBodies) {
+                        if (!Objects.equals(body.getName(), "sun")) {
+                            body.setOrbitSpeed(body.getBaseOrbitSpeed() * speed);
+                        }
+                    }
+                }
+            });
+
+            uiStage.addActor(button);
+        }
+    }
+
+    private void initializeOrbitalPlaneSlider() {
         orbitAngleSlider = new Slider(0, 1, 0.01f, false, skin);
         orbitAngleSlider.setValue(1f);
+        // Height seems to be not taken into account
+        orbitAngleSlider.setSize(200, 20);
+        // Position the slider at the top left corner of the screen
+        orbitAngleSlider.setPosition(0, Gdx.graphics.getHeight() - orbitAngleSlider.getHeight());
         orbitAngleSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -91,8 +147,29 @@ public class SolarSystemScreen implements Screen {
                 }
             }
         });
-        // Add the slider to the stage or a table depending on your layout
-        worldStage.addActor(orbitAngleSlider);
+
+        uiStage.addActor(orbitAngleSlider);
+    }
+
+    private void initializeOrbitCurrentAngleSlider() {
+        orbitCurrentAngleSlider = new Slider(1f, 1.01f, 0.0001f, false, skin);
+        orbitCurrentAngleSlider.setValue(0f);
+        orbitCurrentAngleSlider.setSize(200, 20);
+        orbitCurrentAngleSlider.setPosition(0, orbitAngleSlider.getY() - orbitCurrentAngleSlider.getHeight() - 10); // 10 is the gap between the two sliders
+        orbitCurrentAngleSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                float multiplier = orbitCurrentAngleSlider.getValue();
+                for (CelestialBodyActor body : celestialBodies) {
+                    if (!Objects.equals(body.getName(), "sun")) {
+                        float currentOrbitAngle = body.getCurrentOrbitAngleRadians();
+                        body.setCurrentOrbitAngleRadians(currentOrbitAngle * multiplier);
+                    }
+                }
+            }
+        });
+
+        uiStage.addActor(orbitCurrentAngleSlider);
     }
 
     private void initializeCameraAndViewport() {
@@ -126,6 +203,7 @@ public class SolarSystemScreen implements Screen {
         InputMultiplexer multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(cameraController);
         multiplexer.addProcessor(worldStage);
+        multiplexer.addProcessor(uiStage);
         // Add other input processors as needed
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -232,10 +310,12 @@ public class SolarSystemScreen implements Screen {
 
         clearScreen();
 
+        uiStage.act(delta);
         updateWorldStage(delta);
         cameraController.update(delta);
 
-        worldStage.draw();
+        worldStage.draw(); // First draw the world stage
+        uiStage.draw(); // Then draw the UI on top
     }
 
     private void clearScreen() {
@@ -251,6 +331,7 @@ public class SolarSystemScreen implements Screen {
     @Override
     public void resize(int width, int height) {
         worldViewport.update(width, height);
+        uiViewport.update(width, height, true);
 
         Actor backgroundActor = worldStage.getActors().first();
         if (backgroundActor instanceof Background) {
@@ -261,6 +342,7 @@ public class SolarSystemScreen implements Screen {
     @Override
     public void dispose() {
         worldStage.dispose();
+        uiStage.dispose();
         assetManager.dispose();
     }
 
