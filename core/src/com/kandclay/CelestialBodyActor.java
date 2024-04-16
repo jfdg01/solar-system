@@ -22,10 +22,10 @@ public class CelestialBodyActor extends Actor {
     private float orbitSpeed;
     private float orbitSpeedRadiansPerSecond;
     private boolean isCircularOrbit = true;
-    private float currentOrbitAngleRadians = 0f; // Tracks the current angle in radians
-    private float axisRatio = 1f; // Current axis ratio
-    private float targetAxisRatio = 1f; // Target axis ratio for interpolation
-    private float interpolationSpeed = 0.01f; // Speed of interpolation
+    private float currentOrbitAngleRadians = 0f; // Tracks the current orbital position in radians (0 to 2*PI)
+    private float ellipseAxisRatio = 1f; // Current axis ratio (big side of the ellipse)
+    private float targetEllipseAxisRatio = 1f; // Target axis ratio for interpolation (small side of the ellipse)
+    private float axisRatioInterpolationSpeed = 0.01f; // Speed of interpolation
     private Group parent;
 
     public CelestialBodyActor(String name, float radius, Animation<TextureRegion> animation,
@@ -48,27 +48,18 @@ public class CelestialBodyActor extends Actor {
         super.act(delta);
         stateTime += delta;
 
-        if (Math.abs(targetAxisRatio - axisRatio) > 0.01f) {
-            axisRatio += (targetAxisRatio - axisRatio) * interpolationSpeed;
+        if (Math.abs(targetEllipseAxisRatio - ellipseAxisRatio) > 0.01f) {
+            ellipseAxisRatio += (targetEllipseAxisRatio - ellipseAxisRatio) * axisRatioInterpolationSpeed;
         }
 
-        updateOrbit(delta, axisRatio);
+        updateOrbitPosition(delta, ellipseAxisRatio);
     }
 
     public void switchOrbitType() {
-
-        if (isCircularOrbit) {
-            targetAxisRatio = 0.05f; // For an elliptical orbit
-        } else {
-            targetAxisRatio = 1f; // For a circular orbit
-        }
-
         isCircularOrbit = !isCircularOrbit;
     }
 
-    private void updateOrbit(float delta, float axisRatio) {
-
-        System.out.println("Name: " + name + ", zi: " + getZIndex());
+    private void updateOrbitPosition(float delta, float axisRatio) {
 
         if (Objects.equals(name, "sun")) {
             return;
@@ -87,14 +78,14 @@ public class CelestialBodyActor extends Actor {
         float centerY = orbitedBody.getY() + orbitedBody.getHeight() / 2;
 
         // Semi-major axis and semi-minor axis
-        float a = distanceToOrbitedBody; // Maximum distance to orbited body
-        float b = distanceToOrbitedBody * axisRatio; // axisRatio of the maximum distance
+        float semiMajorAxis = distanceToOrbitedBody; // Maximum distance to orbited body
+        float semiMinorAxis = distanceToOrbitedBody * axisRatio; // axisRatio of the maximum distance
 
-        float newX = centerX + a * MathUtils.cos(currentOrbitAngleRadians) - getWidth() / 2;
-        float newY = centerY + b * MathUtils.sin(currentOrbitAngleRadians) - getHeight() / 2;
+        float newOrbitX = centerX + semiMajorAxis * MathUtils.cos(currentOrbitAngleRadians) - getWidth() / 2;
+        float newOrbitY = centerY + semiMinorAxis * MathUtils.sin(currentOrbitAngleRadians) - getHeight() / 2;
 
         // Update the position of the celestial body
-        setPosition(newX, newY);
+        setPosition(newOrbitX, newOrbitY);
 
         // Adjust the scale based on the current orbit angle
         float scale = 2 - (0.5f + (1 + MathUtils.sin(currentOrbitAngleRadians)) / 2); // Subtract the current scale from 2 to invert the scaling effect
@@ -126,8 +117,12 @@ public class CelestialBodyActor extends Actor {
         });
     }
 
-    public void setTargetAxisRatio(float targetAxisRatio) {
-        this.targetAxisRatio = targetAxisRatio;
+    public float getTargetEllipseAxisRatio() {
+        return targetEllipseAxisRatio;
+    }
+
+    public void setTargetEllipseAxisRatio(float targetEllipseAxisRatio) {
+        this.targetEllipseAxisRatio = targetEllipseAxisRatio;
     }
 }
 

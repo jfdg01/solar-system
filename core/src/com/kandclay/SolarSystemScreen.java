@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -34,6 +35,7 @@ public class SolarSystemScreen implements Screen {
     String backgroundPath;
     private Group planetGroup;
     private Skin skin;
+    private Slider orbitAngleSlider;
 
     public SolarSystemScreen(SolarSystemGame game) {
         this.game = game;
@@ -69,11 +71,28 @@ public class SolarSystemScreen implements Screen {
         initializeCameraAndViewport();
         initializeStage();
         initializeBackground();
-
         skin = assetManager.get("skin/default/skin/uiskin.json");
+
+        initializeSlider();
 
         setupInputProcessors();
         createSolarSystem();
+    }
+
+    private void initializeSlider() {
+        orbitAngleSlider = new Slider(0, 1, 0.01f, false, skin);
+        orbitAngleSlider.setValue(1f);
+        orbitAngleSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                float targetEllipseAxisRatio = orbitAngleSlider.getValue();
+                for (CelestialBodyActor body : celestialBodies) {
+                    body.setTargetEllipseAxisRatio(targetEllipseAxisRatio);
+                }
+            }
+        });
+        // Add the slider to the stage or a table depending on your layout
+        worldStage.addActor(orbitAngleSlider);
     }
 
     private void initializeCameraAndViewport() {
