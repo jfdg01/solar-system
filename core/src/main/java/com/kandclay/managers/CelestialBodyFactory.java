@@ -9,18 +9,21 @@ import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
 import com.kandclay.Constants;
+import com.kandclay.Main;
 import com.kandclay.actors.CelestialBodyActor;
 import com.kandclay.managers.MyAssetManager;
 
 public class CelestialBodyFactory {
+    private Main game;
     private final MyAssetManager assetManager;
     private final Group planetGroup;
     private final Array<CelestialBodyActor> celestialBodies;
 
-    public CelestialBodyFactory(MyAssetManager assetManager, Group planetGroup, Array<CelestialBodyActor> celestialBodies) {
+    public CelestialBodyFactory(MyAssetManager assetManager, Group planetGroup, Array<CelestialBodyActor> celestialBodies, Main game) {
         this.assetManager = assetManager;
         this.planetGroup = planetGroup;
         this.celestialBodies = celestialBodies;
+        this.game = game;
     }
 
     public CelestialBodyActor createSun() {
@@ -61,7 +64,7 @@ public class CelestialBodyFactory {
 
         float adjustedRadius = radiusPixels;
 
-        if (texturePathSuffix.equals("saturn")) adjustedRadius = (float) (radiusPixels / 3);
+        if (texturePathSuffix.equals("saturn")) adjustedRadius = (radiusPixels / 3f);
 
         CelestialBodyActor planet = new CelestialBodyActor(texturePathSuffix, radiusPixels, adjustedRadius, animation,
             orbitedBody, distanceToOrbitedBody, orbitSpeed);

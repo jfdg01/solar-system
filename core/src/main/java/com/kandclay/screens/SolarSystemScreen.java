@@ -38,7 +38,7 @@ public class SolarSystemScreen implements Screen {
         this.planetGroup = new Group();
 
         this.cameraManager = new CameraManager(Constants.Camera.VIEWPORT_WIDTH_PIXELS_INIT, Constants.Camera.VIEWPORT_HEIGHT_PIXELS_INIT);
-        this.celestialBodyFactory = new CelestialBodyFactory(game.assetManager, planetGroup, celestialBodies);
+        this.celestialBodyFactory = new CelestialBodyFactory(game.assetManager, planetGroup, celestialBodies, game);
         this.stageManager = new StageManager(cameraManager);
     }
 

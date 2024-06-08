@@ -14,6 +14,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kandclay.actors.CelestialBodyActor;
 import com.kandclay.controllers.CameraController;
 import com.kandclay.screens.MenuScreen;
+import com.kandclay.screens.SolarSystemScreen;
 
 import java.util.Objects;
 
@@ -60,7 +61,7 @@ public class SolarSystemUI {
         initializeMainMenuButton();
         initializeInfoWindow();
 
-        addStageClickListener();
+        // addStageClickListener();
         updatePositions();
     }
 
@@ -92,18 +93,7 @@ public class SolarSystemUI {
         infoWindow.setVisible(false);
     }
 
-    private void addStageClickListener() {
-        uiStage.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                Vector2 stageCoords = new Vector2(x, y);
-                String info = "Clicked at: " + stageCoords.x + ", " + stageCoords.y; // Example info
-                showInfoWindow(stageCoords.x, stageCoords.y, info);
-            }
-        });
-    }
-
-    private void initializeSliders() {
+        private void initializeSliders() {
         orbitAngleSlider = createOrbitAngleSlider();
         speedSlider = createSpeedSlider();
 

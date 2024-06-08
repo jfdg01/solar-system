@@ -33,6 +33,7 @@ public class CelestialBodyActor extends Actor {
     private boolean enlargeMode = true;
     private boolean clockwiseDirection = true;
 
+
     public CelestialBodyActor(String name, float radius, float touchRadius, Animation<TextureRegion> animation,
                               CelestialBodyActor orbitedBody, float distanceToOrbitedBody, float orbitSpeed) {
         this.name = name;
@@ -59,8 +60,10 @@ public class CelestialBodyActor extends Actor {
         updateEllipseAxisRatio(delta);
         updateOrbitPosition(delta);
 
-        // Update the position of the touchable area
+        // Update the position and radius of the touchable area
+        float scale = getScaleX();  // Assuming uniform scaling
         touchableArea.setPosition(getX() + getWidth() / 2, getY() + getHeight() / 2);
+        touchableArea.setRadius(touchRadius * scale);
     }
 
     private void updateEllipseAxisRatio(float delta) {
@@ -85,10 +88,9 @@ public class CelestialBodyActor extends Actor {
         float centerX = orbitedBody.getX() + orbitedBody.getWidth() / 2;
         float centerY = orbitedBody.getY() + orbitedBody.getHeight() / 2;
 
-        float semiMajorAxis = distanceToOrbitedBody;
         float semiMinorAxis = distanceToOrbitedBody * ellipseAxisRatio;
 
-        float newOrbitX = centerX + semiMajorAxis * MathUtils.cos(currentOrbitAngleRadians) - getWidth() / 2;
+        float newOrbitX = centerX + distanceToOrbitedBody * MathUtils.cos(currentOrbitAngleRadians) - getWidth() / 2;
         float newOrbitY = centerY + semiMinorAxis * MathUtils.sin(currentOrbitAngleRadians) - getHeight() / 2;
 
         setPosition(newOrbitX, newOrbitY);
@@ -115,9 +117,9 @@ public class CelestialBodyActor extends Actor {
             public void clicked(InputEvent event, float x, float y) {
                 logger.info(name + " clicked!");
                 if (enlargeMode) {
-                    // augmentSize();
+                    augmentSize();
                 } else {
-                    // reduceSize();
+                    reduceSize();
                 }
             }
         });
@@ -130,7 +132,7 @@ public class CelestialBodyActor extends Actor {
         Vector2 touchPoint = new Vector2(x, y);
         Vector2 center = new Vector2(getWidth() / 2, getHeight() / 2);
 
-        if (touchPoint.dst(center) <= touchRadius) {
+        if (touchableArea.contains(getX() + x, getY() + y)) {
             return this;
         } else {
             return null;
