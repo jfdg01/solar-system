@@ -1,12 +1,10 @@
 package com.kandclay;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.utils.Array;
 import com.kandclay.actors.CelestialBodyActor;
 import com.kandclay.controllers.CameraController;
-import com.kandclay.screens.SolarSystemUI;
 
 public class SolarSystemInputHandler extends InputAdapter {
 

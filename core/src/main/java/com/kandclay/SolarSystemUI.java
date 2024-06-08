@@ -1,4 +1,4 @@
-package com.kandclay.screens;
+package com.kandclay;
 
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -12,10 +12,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.kandclay.Constants;
-import com.kandclay.Main;
 import com.kandclay.actors.CelestialBodyActor;
 import com.kandclay.controllers.CameraController;
+import com.kandclay.screens.MenuScreen;
 
 import java.util.Objects;
 

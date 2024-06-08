@@ -12,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 
 import com.kandclay.Constants;
 import com.kandclay.Main;
+import com.kandclay.SolarSystemUI;
 import com.kandclay.actors.BackgroundActor;
 import com.kandclay.actors.CelestialBodyActor;
 import com.kandclay.controllers.CameraController;

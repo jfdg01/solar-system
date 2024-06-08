@@ -55,8 +55,7 @@ public class CameraController {
     }
 
     public void moveCamera(float deltaX, float deltaY, float deltaTime) {
-        cameraManager.translateCamera(deltaX * moveSpeed * cameraManager.getCamera().zoom * deltaTime,
-            deltaY * moveSpeed * cameraManager.getCamera().zoom * deltaTime);
+        cameraManager.translateCamera(deltaX * moveSpeed * cameraManager.getCamera().zoom * deltaTime, deltaY * moveSpeed * cameraManager.getCamera().zoom * deltaTime);
     }
 
     public void handleTouchDown(int screenX, int screenY, int pointer) {
