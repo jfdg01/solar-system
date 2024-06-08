@@ -133,4 +133,8 @@ public class SolarSystemInputHandler extends InputAdapter {
     public void update(float deltaTime) {
         cameraController.update(deltaTime, upPressed, downPressed, leftPressed, rightPressed);
     }
+
+    public CameraController getCameraController() {
+        return cameraController;
+    }
 }

@@ -37,12 +37,14 @@ public class SolarSystemUI {
     private ScreenViewport uiViewport;
     private boolean enlargeMode = true;
     private CameraController cameraController;
+    private SolarSystemInputHandler inputHandler;
     private WidgetGroup uiGroup;
 
-    public SolarSystemUI(Skin skin, Array<CelestialBodyActor> celestialBodies, CameraController cameraController, Main game) {
+    public SolarSystemUI(Skin skin, Array<CelestialBodyActor> celestialBodies, CameraController cameraController, SolarSystemInputHandler inputHandler, Main game) {
         this.skin = skin;
         this.celestialBodies = celestialBodies;
         this.cameraController = cameraController;
+        this.inputHandler = inputHandler;
         this.game = game;
     }
 
@@ -133,7 +135,7 @@ public class SolarSystemUI {
         prevButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                cameraController.selectPreviousBody();
+                inputHandler.getCameraController().selectPreviousBody();
             }
         });
 
@@ -142,7 +144,7 @@ public class SolarSystemUI {
         nextButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                cameraController.selectNextBody();
+                inputHandler.getCameraController().selectNextBody();
             }
         });
 

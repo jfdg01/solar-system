@@ -47,7 +47,7 @@ public class SolarSystemScreen implements Screen {
         initializeCameraController();
         initializeInputHandler();
         stageManager.initializeBackground(game.assetManager.get("sprites/static/backgroundSimple.png", Texture.class), cameraManager.getViewport().getWorldWidth(), cameraManager.getViewport().getWorldHeight());
-        solarSystemUI = new SolarSystemUI(game.assetManager.get("skin/default/skin/uiskin.json", Skin.class), celestialBodies, cameraController, game);
+        solarSystemUI = new SolarSystemUI(game.assetManager.get("skin/default/skin/uiskin.json", Skin.class), celestialBodies, cameraController, inputHandler, game);
         solarSystemUI.initializeUI();
 
         setupInputProcessors();

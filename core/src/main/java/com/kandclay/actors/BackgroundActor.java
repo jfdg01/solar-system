@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 
 public class BackgroundActor extends Actor {
-    private Texture backgroundTexture;
+    private final Texture backgroundTexture;
 
     public BackgroundActor(Texture backgroundTexture) {
         this.backgroundTexture = backgroundTexture;
