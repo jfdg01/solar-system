@@ -18,10 +18,12 @@ import com.kandclay.controllers.CameraController;
 import com.kandclay.managers.CelestialBodyFactory;
 import com.kandclay.managers.StageManager;
 import com.kandclay.managers.CameraManager;
+import com.kandclay.SolarSystemInputHandler;
 
 public class SolarSystemScreen implements Screen {
     private final Main game;
     private CameraController cameraController;
+    private SolarSystemInputHandler inputHandler;
     private final StageManager stageManager;
     private SolarSystemUI solarSystemUI;
     private final Group planetGroup;
@@ -42,6 +44,7 @@ public class SolarSystemScreen implements Screen {
     @Override
     public void show() {
         initializeCameraController();
+        initializeInputHandler();
         stageManager.initializeBackground(game.assetManager.get("sprites/static/backgroundSimple.png", Texture.class), cameraManager.getViewport().getWorldWidth(), cameraManager.getViewport().getWorldHeight());
         solarSystemUI = new SolarSystemUI(game.assetManager.get("skin/default/skin/uiskin.json", Skin.class), celestialBodies, cameraController, game);
         solarSystemUI.initializeUI();
@@ -55,10 +58,14 @@ public class SolarSystemScreen implements Screen {
         cameraController = new CameraController(cameraManager, Constants.Camera.MOVE_SPEED, Constants.Camera.ZOOM_IN_FACTOR, Constants.Camera.ZOOM_OUT_FACTOR, this.getCelestialBodies());
     }
 
+    private void initializeInputHandler() {
+        inputHandler = new SolarSystemInputHandler(cameraController, celestialBodies, solarSystemUI);
+    }
+
     private void setupInputProcessors() {
         InputMultiplexer multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(solarSystemUI.getUiStage());
-        multiplexer.addProcessor(cameraController);
+        multiplexer.addProcessor(inputHandler);
         multiplexer.addProcessor(stageManager.getWorldStage());
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -82,7 +89,7 @@ public class SolarSystemScreen implements Screen {
         clearScreen();
         solarSystemUI.getUiStage().act(delta);
         stageManager.update(delta);
-        cameraController.update(delta);
+        inputHandler.update(delta);
         stageManager.getWorldStage().draw();
         solarSystemUI.getUiStage().draw();
     }
