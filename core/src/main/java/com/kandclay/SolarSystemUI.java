@@ -1,13 +1,12 @@
 package com.kandclay;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Slider;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
@@ -38,6 +37,8 @@ public class SolarSystemUI {
     private boolean enlargeMode = true;
     private CameraController cameraController;
     private WidgetGroup uiGroup;
+    private Window infoWindow;
+    private Label infoLabel;
 
     public SolarSystemUI(Skin skin, Array<CelestialBodyActor> celestialBodies, CameraController cameraController, Main game) {
         this.skin = skin;
@@ -57,8 +58,49 @@ public class SolarSystemUI {
         initializeNavigationButtons();
         initializeToggleDirectionButton();
         initializeMainMenuButton();
+        initializeInfoWindow();
 
+        addStageClickListener();
         updatePositions();
+    }
+
+    private void initializeInfoWindow() {
+        infoWindow = new Window("Planet Info", skin);
+        infoLabel = new Label("", skin);
+        infoWindow.add(infoLabel).row();
+        TextButton closeButton = new TextButton("Close", skin);
+        closeButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                infoWindow.setVisible(false);
+            }
+        });
+        infoWindow.add(closeButton);
+        infoWindow.pack();
+        infoWindow.setVisible(false);
+        uiStage.addActor(infoWindow);
+    }
+
+    public void showInfoWindow(float screenX, float screenY, String info) {
+        infoLabel.setText(info);
+        infoWindow.pack();
+        infoWindow.setPosition(screenX, screenY);
+        infoWindow.setVisible(true);
+    }
+
+    public void hideInfoWindow() {
+        infoWindow.setVisible(false);
+    }
+
+    private void addStageClickListener() {
+        uiStage.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Vector2 stageCoords = new Vector2(x, y);
+                String info = "Clicked at: " + stageCoords.x + ", " + stageCoords.y; // Example info
+                showInfoWindow(stageCoords.x, stageCoords.y, info);
+            }
+        });
     }
 
     private void initializeSliders() {

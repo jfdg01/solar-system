@@ -1,7 +1,9 @@
 package com.kandclay;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.kandclay.actors.CelestialBodyActor;
 import com.kandclay.controllers.CameraController;
@@ -10,6 +12,7 @@ public class SolarSystemInputHandler extends InputAdapter {
 
     private final CameraController cameraController;
     private final SolarSystemUI solarSystemUI;
+    private final Array<CelestialBodyActor> celestialBodies;
 
     private boolean upPressed = false;
     private boolean downPressed = false;
@@ -19,6 +22,7 @@ public class SolarSystemInputHandler extends InputAdapter {
     public SolarSystemInputHandler(CameraController cameraController, Array<CelestialBodyActor> celestialBodies, SolarSystemUI solarSystemUI) {
         this.cameraController = cameraController;
         this.solarSystemUI = solarSystemUI;
+        this.celestialBodies = celestialBodies;
     }
 
     public Array<CelestialBodyActor> getCelestialBodies() {
@@ -118,6 +122,13 @@ public class SolarSystemInputHandler extends InputAdapter {
         return false;
     }
 
+    private String getCelestialBodyInfo(CelestialBodyActor body) {
+        // Construct and return information about the celestial body
+        return "Name: " + body.getName() + "\n" +
+            "Radius: " + body.getRadius() + "\n" +
+            "Orbit Speed: " + body.getOrbitSpeed();
+    }
+
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
         cameraController.handleTouchDragged(screenX, screenY, pointer);
@@ -132,5 +143,9 @@ public class SolarSystemInputHandler extends InputAdapter {
 
     public void update(float deltaTime) {
         cameraController.update(deltaTime, upPressed, downPressed, leftPressed, rightPressed);
+    }
+
+    public CameraController getCameraController() {
+        return cameraController;
     }
 }

@@ -19,17 +19,16 @@ public class CelestialBodyActor extends Actor {
     public String name;
     private float radius;
     private float touchRadius;
-    private Animation<TextureRegion> animation;
+    private final Animation<TextureRegion> animation;
     private float stateTime = 0;
-    private CelestialBodyActor orbitedBody;
-    private float distanceToOrbitedBody;
+    private final CelestialBodyActor orbitedBody;
+    private final float distanceToOrbitedBody;
     private final float orbitSpeed;
     private float orbitSpeedRadiansPerSecond;
     private float currentOrbitAngleRadians = 0f;
     private float ellipseAxisRatio = 1f;
     private float targetEllipseAxisRatio = 1f;
-    private float axisRatioInterpolationSpeed = 0.01f;
-    private Circle touchableArea;
+    private final Circle touchableArea;
     private static final Logger logger = new Logger(CelestialBodyActor.class.getName(), Logger.DEBUG);
     private boolean enlargeMode = true;
     private boolean clockwiseDirection = true;
@@ -66,6 +65,7 @@ public class CelestialBodyActor extends Actor {
 
     private void updateEllipseAxisRatio(float delta) {
         if (Math.abs(targetEllipseAxisRatio - ellipseAxisRatio) > 0.01f) {
+            float axisRatioInterpolationSpeed = 0.01f;
             ellipseAxisRatio += (targetEllipseAxisRatio - ellipseAxisRatio) * axisRatioInterpolationSpeed;
         }
     }
@@ -115,9 +115,9 @@ public class CelestialBodyActor extends Actor {
             public void clicked(InputEvent event, float x, float y) {
                 logger.info(name + " clicked!");
                 if (enlargeMode) {
-                    augmentSize();
+                    // augmentSize();
                 } else {
-                    reduceSize();
+                    // reduceSize();
                 }
             }
         });
@@ -135,6 +135,10 @@ public class CelestialBodyActor extends Actor {
         } else {
             return null;
         }
+    }
+
+    public boolean isHit(float x, float y) {
+        return touchableArea.contains(x, y);
     }
 
     private void augmentSize() {
@@ -195,5 +199,14 @@ public class CelestialBodyActor extends Actor {
 
     public void toggleOrbitDirection() {
         clockwiseDirection = !clockwiseDirection;
+    }
+
+    public String getRadius() {
+        return String.valueOf(radius);
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 }

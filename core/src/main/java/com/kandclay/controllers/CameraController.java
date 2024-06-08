@@ -1,5 +1,6 @@
 package com.kandclay.controllers;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.kandclay.actors.CelestialBodyActor;
@@ -133,5 +134,9 @@ public class CameraController {
 
     public Array<CelestialBodyActor> getCelestialBodies() {
         return celestialBodies;
+    }
+
+    public Camera getCamera() {
+        return cameraManager.getCamera();
     }
 }

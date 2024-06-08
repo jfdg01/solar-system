@@ -67,7 +67,7 @@ public class CelestialBodyFactory {
             orbitedBody, distanceToOrbitedBody, orbitSpeed);
 
         planet.setPosition(planetX, planetY);
-
+        planet.addClickListener();
         planetGroup.addActor(planet);
         celestialBodies.add(planet);
 

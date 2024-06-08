@@ -45,10 +45,10 @@ public class SolarSystemScreen implements Screen {
     @Override
     public void show() {
         initializeCameraController();
-        initializeInputHandler();
         stageManager.initializeBackground(game.assetManager.get("sprites/static/backgroundSimple.png", Texture.class), cameraManager.getViewport().getWorldWidth(), cameraManager.getViewport().getWorldHeight());
         solarSystemUI = new SolarSystemUI(game.assetManager.get("skin/default/skin/uiskin.json", Skin.class), celestialBodies, cameraController, game);
         solarSystemUI.initializeUI();
+        initializeInputHandler();
 
         setupInputProcessors();
         createSolarSystem();
